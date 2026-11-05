@@ -1,0 +1,507 @@
+{
+  "meta": {
+    "name": "Yazi \u2014 Durable Agent Runtime",
+    "description": "Design DNA extracted from the shipped Yazi web client (Svelte 5 + DeepSeek Harness theme sheets) and the yazi TUI. Dark, instrument-panel precision: near-black layered surfaces, one cool blue atmospheric accent, Montserrat display type over a system UI text stack, 0.5px hairline elevation, and a drifting colour-field backdrop.",
+    "source_references": [
+      "http://127.0.0.1:8899/ \u2014 built Yazi web client, 1440x900 @2x, dark theme (screenshot: /tmp/yazi-ref/yazi-ui-1440.png)",
+      "yazi/web/src/dsh/design-platform.css \u2014 DSH alias token tables (light + dark)",
+      "yazi/web/src/dsh/brand-font.css \u2014 Montserrat 300/400/500 (OFL)",
+      "yazi/web/src/dsh/HeroShell.module.css, Button.module.css, Pill.module.css \u2014 component geometry",
+      "yazi/web/src/components/Backdrop.svelte \u2014 drifting colour fields + masked dot grid",
+      "yazi/web/src/dsh/gradient-shadow-text.css \u2014 elevation stroke+bloom recipe",
+      "yazi/internal/tui2/parity/testdata/*.txt \u2014 real TUI frames (80x14 tool-call scenario)"
+    ],
+    "created_at": "2026-05-05"
+  },
+  "design_system": {
+    "color": {
+      "palette_type": "monochromatic",
+      "primary": {
+        "hex": "#f7f8f9",
+        "role": "Primary action fill and highest-emphasis text. In the shipped client the primary button is the near-white brand fill with dark ink, not a saturated colour."
+      },
+      "secondary": {
+        "hex": "#1b1c1f",
+        "role": "Layer-1 surface: sidebar, cards, composer backing. One step off the page background."
+      },
+      "accent": {
+        "hex": "#2c345a",
+        "role": "The atmospheric cool-blue field that fills the centre column; also the deep accent used for glow, focus halos and active-state tint."
+      },
+      "neutral": {
+        "scale": [
+          "#f7f8f9",
+          "#d2d4d7",
+          "#bcbec2",
+          "#a8acb2",
+          "#94989e",
+          "#8c9096",
+          "#414149",
+          "#232937",
+          "#1b1c1f",
+          "#151517"
+        ],
+        "usage": "Ordered lightest to darkest. #f7f8f9 primary text and primary button fill; #d2d4d7 secondary body; #a8acb2 tertiary/lede; #94989e muted labels and captions; #8c9096 dim metadata; #414149 borders and dividers; #232937 raised card surface; #1b1c1f layer-1 surface; #151517 page background. The two lowest steps were lifted from the reference's #81848a/#64666b because this page sets copy over the drifting field's peak, where the reference sets none: at the measured peak composite (rgb 50,62,114) the reference's dim values fall to 1.9:1. The lifted values clear 4.5:1 there and are the only deviation from the measured palette."
+      },
+      "semantic": {
+        "success": "#4ed17e",
+        "warning": "#f5a623",
+        "error": "#f25a5a",
+        "info": "#cbddfb"
+      },
+      "surface": {
+        "background": "#151517",
+        "card": "#1b1c1f",
+        "elevated": "#232937"
+      },
+      "contrast_strategy": "dark-on-light dominant, inverted: a near-black page with light text at four deliberate weights of emphasis. Contrast is carried by luminance steps rather than hue, so the single blue accent reads as an event. Audited against the rendered backdrop rather than the flat page colour: all 28 text roles clear WCAG AA (4.5:1 body, 3:1 large) over the brightest pixel actually behind them.",
+      "measurement": {
+        "k": 16,
+        "sampling": {
+          "method": "deterministic_stratified",
+          "max_pixels": 160000,
+          "sampled_pixels": 160000
+        }
+      },
+      "measured_palette": [
+        {
+          "hex": "#151517",
+          "coverage": 0.3254,
+          "role": "background"
+        },
+        {
+          "hex": "#1b1c1f",
+          "coverage": 0.3093,
+          "role": "surface"
+        },
+        {
+          "hex": "#232937",
+          "coverage": 0.2362,
+          "role": "surface-raised"
+        },
+        {
+          "hex": "#2c345a",
+          "coverage": 0.1229,
+          "role": "accent"
+        },
+        {
+          "hex": "#414149",
+          "coverage": 0.0018,
+          "role": "border"
+        },
+        {
+          "hex": "#f7f8f9",
+          "coverage": 0.0013,
+          "role": "text"
+        },
+        {
+          "hex": "#81848a",
+          "coverage": 0.0008,
+          "role": "text-muted"
+        },
+        {
+          "hex": "#4c5e85",
+          "coverage": 0.0006,
+          "role": "unassigned"
+        },
+        {
+          "hex": "#a8acb2",
+          "coverage": 0.0006,
+          "role": "text-tertiary"
+        },
+        {
+          "hex": "#64666b",
+          "coverage": 0.0005,
+          "role": "border-soft"
+        },
+        {
+          "hex": "#d2d4d7",
+          "coverage": 0.0004,
+          "role": "text-secondary"
+        },
+        {
+          "hex": "#bcbec2",
+          "coverage": 0.0002,
+          "role": "unassigned"
+        },
+        {
+          "hex": "#cbddfb",
+          "coverage": 0,
+          "role": "accent-light"
+        },
+        {
+          "hex": "#d72129",
+          "coverage": 0,
+          "role": "brand-mark"
+        },
+        {
+          "hex": "#761720",
+          "coverage": 0,
+          "role": "unassigned"
+        },
+        {
+          "hex": "#a61b24",
+          "coverage": 0,
+          "role": "unassigned"
+        }
+      ]
+    },
+    "typography": {
+      "type_scale": {
+        "display": {
+          "size": "96px",
+          "weight": "300",
+          "line_height": "0.94",
+          "tracking": "-0.035em"
+        },
+        "heading_1": {
+          "size": "56px",
+          "weight": "500",
+          "line_height": "1.04",
+          "tracking": "-0.025em"
+        },
+        "heading_2": {
+          "size": "38px",
+          "weight": "500",
+          "line_height": "1.12",
+          "tracking": "-0.02em"
+        },
+        "heading_3": {
+          "size": "21px",
+          "weight": "500",
+          "line_height": "1.3",
+          "tracking": "-0.01em"
+        },
+        "body": {
+          "size": "17px",
+          "weight": "400",
+          "line_height": "1.65",
+          "tracking": "-0.005em"
+        },
+        "body_small": {
+          "size": "15px",
+          "weight": "400",
+          "line_height": "1.6",
+          "tracking": "0"
+        },
+        "caption": {
+          "size": "13px",
+          "weight": "400",
+          "line_height": "1.5",
+          "tracking": "0.005em"
+        },
+        "overline": {
+          "size": "11px",
+          "weight": "500",
+          "line_height": "1.4",
+          "tracking": "0.18em"
+        }
+      },
+      "font_families": {
+        "heading": "'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+        "body": "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Helvetica Neue', Helvetica, Arial, sans-serif",
+        "mono": "'SF Mono', 'JetBrains Mono', 'Fira Code', Consolas, 'Liberation Mono', Menlo, monospace"
+      },
+      "font_style_notes": "Two-voice system taken verbatim from the product: Montserrat (geometric, wide, humanist terminals) carries brand and display type at weights 300/500 only; all running text uses the platform UI stack so the page reads like native software rather than a webfont showcase; mono is the third voice and does the technical work \u2014 overlines, commands, code, metadata. No italic anywhere."
+    },
+    "spacing": {
+      "base_unit": "4px",
+      "scale": [
+        "4px",
+        "8px",
+        "12px",
+        "16px",
+        "24px",
+        "32px",
+        "48px",
+        "64px",
+        "96px",
+        "128px",
+        "160px"
+      ],
+      "content_density": "comfortable",
+      "section_rhythm": "Section padding steps 96px \u2192 128px \u2192 160px as the page descends; each section opens with a mono overline, a 38px heading and a 17px lede capped at 62ch, then a 48-64px gap before the content block. Rhythm is regular, not syncopated: the page is a document, not a collage."
+    },
+    "layout": {
+      "grid_system": "12-column fluid grid with a 1240px content cap and 24px gutters; asymmetric splits of 5/7 and 7/5 for text-plus-object sections",
+      "max_content_width": "1240px",
+      "columns": "12",
+      "gutter": "24px",
+      "breakpoints": [
+        "640px",
+        "900px",
+        "1200px"
+      ],
+      "alignment_tendency": "strict grid"
+    },
+    "shape": {
+      "border_radius": {
+        "small": "8px",
+        "medium": "12px",
+        "large": "20px",
+        "pill": "999px"
+      },
+      "border_usage": "subtle 1px \u2014 hairlines at 0.5px on elevated surfaces (the product's elevation stroke), 1px rgba(255,255,255,.06) dividers, and 1px #414149 on cards and inputs. Never a heavy border.",
+      "divider_style": "1px solid rgba(255,255,255,0.06); section rules span the full content width and stop at the gutter"
+    },
+    "elevation": {
+      "shadow_style": "soft diffused, drawn as a 0.5px hairline stroke plus two very low-opacity blooms \u2014 the product's own elevation recipe",
+      "levels": {
+        "low": "0 0 0 0.5px rgba(255,255,255,0.06), 0 2px 6px rgba(0,0,0,0.28)",
+        "medium": "0 0 0 0.5px rgba(255,255,255,0.09), 0 4px 16px rgba(0,0,0,0.32), 0 0 24px rgba(0,0,0,0.22)",
+        "high": "0 0 0 0.5px rgba(255,255,255,0.12), 0 12px 40px rgba(0,0,0,0.48), 0 0 64px rgba(44,52,90,0.35)"
+      },
+      "depth_cues": "overlapping layers, blur/glass, color intensity"
+    },
+    "iconography": {
+      "style": "1.5px monoline, geometric, 16/20/24px on a 24px box, rounded caps",
+      "stroke_weight": "1.5px",
+      "size_scale": [
+        "16px",
+        "20px",
+        "24px"
+      ],
+      "preferred_set": "hand-drawn inline SVG in the product's own 16px grid; no icon font, no icon library"
+    },
+    "motion": {
+      "easing": "cubic-bezier(0.4, 0, 0.2, 1)",
+      "duration_scale": {
+        "micro": "100ms",
+        "normal": "200ms",
+        "macro": "300ms"
+      },
+      "entrance_pattern": "fade-up: opacity 0\u21921 with translateY(14px)\u21920, 300ms, staggered 60ms per sibling, once per element on first intersection",
+      "exit_pattern": "fade only, 150ms \u2014 nothing slides out",
+      "philosophy": "minimal functional: motion explains state change and never decorates it. The one long-running animation is the backdrop's 22/26/30s drift, which is ambient and never competes with reading."
+    },
+    "components": {
+      "button_style": "Primary: 40px tall, 12px radius, #f7f8f9 fill with #151517 ink, weight 500, 15px. Ghost: transparent with a 0.5px inset hairline, label at #d2d4d7, hover lifts the fill to rgba(255,255,255,.06). Both use a 200ms ease and translate 0px (no lift).",
+      "input_style": "Frosted glass card: rgba(35,41,55,.72) with backdrop-filter blur(20px) saturate(140%), 20px radius, 0.5px hairline, inner padding 20px. Placeholder at #81848a.",
+      "card_style": "#1b1c1f fill, 1px #414149 border, 16-20px radius, 28-32px padding, no shadow at rest; hover raises the border to rgba(255,255,255,.16) and adds the low shadow.",
+      "navigation_pattern": "Fixed top bar, 64px, transparent over the hero then rgba(21,21,23,.82) + blur(20px) + 1px bottom hairline once scrolled. Brand mark left, mono link row centre-right, primary CTA right.",
+      "modal_style": "not used on this page",
+      "list_style": "Hairline-separated rows, 13px mono metadata at #81848a, 15px label at #d2d4d7, 16px vertical padding",
+      "component_notes": "Everything derives from the product's own primitives: Button.module.css geometry (12px radius, 14px/22px label, 0.5px inset outline), Pill.module.css (999px, 12px label, layer-2 fill), HeroShell.module.css (centred mark + 26px/32px weight-500 headline), and Backdrop.svelte (three drifting radial fields + a dot grid under a 60%x55% radial mask)."
+    }
+  },
+  "design_style": {
+    "aesthetic": {
+      "mood": [
+        "precise",
+        "nocturnal",
+        "instrumental",
+        "calm",
+        "technical"
+      ],
+      "visual_metaphor": "a dark instrument panel: machined surfaces, hairline seams, one indicator light, and an atmosphere moving slowly behind the glass",
+      "era_influence": "late-2020s developer tooling \u2014 post-flat, pre-maximal: the restraint of a terminal emulator with the finish of a native macOS app",
+      "genre": "developer tool / technical product site",
+      "personality_traits": [
+        "confident",
+        "unhurried",
+        "meticulous",
+        "unglamorous on purpose",
+        "trustworthy"
+      ],
+      "adjectives": [
+        "quiet",
+        "dense",
+        "engineered",
+        "cool-toned",
+        "legible"
+      ]
+    },
+    "visual_language": {
+      "complexity": "moderate",
+      "ornamentation": "subtle accents",
+      "whitespace_usage": "generous at section scale (96-160px), tight inside components (4-16px) \u2014 the contrast between the two is the page's main visual texture",
+      "visual_weight_distribution": "heavy at the hero and the terminal demo, deliberately light through the feature grid, heavy again at install",
+      "focal_strategy": "progressive reveal: one hero statement, then evidence in descending order of specificity",
+      "contrast_level": "moderate: text at 4.5:1 or better, surfaces separated by 10% luminance steps, one accent hue used sparingly",
+      "texture_usage": "a 22px dot grid at 7% opacity under a radial mask; 0.5px hairlines; no grain, no noise, no gradients on text"
+    },
+    "composition": {
+      "hierarchy_method": "typographic hierarchy and scale contrast",
+      "balance_type": "asymmetric",
+      "flow_direction": "vertical, single column, with two asymmetric two-column breaks (hero, architecture)",
+      "grouping_strategy": "proximity and hairline containment; cards are used only where the content is genuinely a discrete object",
+      "negative_space_role": "structural \u2014 the gaps are what make the density inside components legible"
+    },
+    "imagery": {
+      "photo_treatment": "none \u2014 no photography anywhere",
+      "illustration_style": "none; the only image is the product's own jet mark, used at 28-96px",
+      "graphic_elements": "the jet mark, mono ASCII-style diagrams, dot grid, hairline rules, syntax-highlighted code",
+      "pattern_usage": "22px dot grid, radial-masked, panning slowly on the landing surface only",
+      "image_shape": "the mark is unshaped (transparent PNG-equivalent SVG); diagrams are rectangular with 12px radii"
+    },
+    "interaction_feel": {
+      "feedback_style": "immediate and quiet: 100ms colour change on press, no ripples, no bounce",
+      "hover_behavior": "surfaces lighten by one step; cards raise their hairline; the mark drifts 2px; nothing scales above 1.01",
+      "transition_personality": "smooth glide",
+      "loading_style": "the terminal demo types at a human cadence with a blinking block caret; no spinners, no skeletons on this page",
+      "microinteraction_density": "low \u2014 roughly one per component, reserved for the things a reader actually touches"
+    },
+    "brand_voice_in_ui": {
+      "tone": "plain, declarative, unexcited; states what the software does and what it does not claim",
+      "formality": "neutral technical",
+      "cta_style": "direct imperative",
+      "empty_state_approach": "explain the mechanism rather than apologise",
+      "error_tone": "literal and actionable"
+    }
+  },
+  "visual_effects": {
+    "overview": {
+      "effect_intensity": "subtle-accent",
+      "performance_tier": "lightweight",
+      "fallback_strategy": "reduce to CSS: under prefers-reduced-motion the fields hold still and the demo renders its final frame as static text; with hardwareConcurrency <= 2 or a coarse pointer the grid layer is dropped and the fields stop drifting",
+      "primary_technology": "CSS only"
+    },
+    "background_effects": {
+      "type": "gradient-animation",
+      "description": "Three large radial colour fields (cool blue, violet, teal) drifting on 22s/26s/30s alternating loops behind the whole page, plus a 22px dot grid panning one tile per 40s under a radial mask. Drawn as radial-gradient layers rather than blurred elements so the compositor moves them for free \u2014 the same technique the shipped client uses.",
+      "technology": "CSS radial-gradient + transform keyframes",
+      "params": {
+        "color_palette": [
+          "#2c345a",
+          "#4c5e85",
+          "#232937"
+        ],
+        "speed": "22s / 26s / 30s alternate",
+        "density": "3 fields",
+        "opacity": "0.30-0.55",
+        "blend_mode": "normal over #151517"
+      }
+    },
+    "particle_systems": {
+      "enabled": false,
+      "type": "none",
+      "description": "The product has no particle system; the dot grid is a static CSS pattern, not particles.",
+      "technology": "none",
+      "params": {
+        "count": "0",
+        "shape": "none",
+        "size_range": "1px dots",
+        "movement_pattern": "none",
+        "color_behavior": "rgba(247,248,249,0.07)",
+        "interaction": "none",
+        "spawn_area": "none"
+      }
+    },
+    "3d_elements": {
+      "enabled": false,
+      "type": "none",
+      "description": "No 3D. Depth is expressed with luminance layers and hairlines.",
+      "technology": "none",
+      "params": {
+        "renderer": "none",
+        "lighting": "none",
+        "camera": "none",
+        "materials": "none",
+        "geometry": "none",
+        "post_processing": [],
+        "interaction_model": "none"
+      }
+    },
+    "shader_effects": {
+      "enabled": false,
+      "type": "none",
+      "description": "No shaders; the atmosphere is CSS gradients.",
+      "technology": "none",
+      "params": {
+        "uniforms": "none",
+        "vertex_manipulation": "none",
+        "fragment_output": "none",
+        "noise_type": "none",
+        "distortion": "none"
+      }
+    },
+    "scroll_effects": {
+      "parallax": {
+        "enabled": true,
+        "layers": "2",
+        "depth_range": "0-40px",
+        "speed_curve": "linear with scroll, clamped to the hero's height"
+      },
+      "scroll_triggered_animations": {
+        "enabled": true,
+        "trigger_points": "0.15 intersection, once",
+        "animation_type": "fade-up",
+        "scrub_behavior": "triggered, plays once, never reverses"
+      },
+      "scroll_morphing": {
+        "enabled": false,
+        "description": "No scroll-driven morphing; the nav's material change on scroll is the only scroll-linked state."
+      }
+    },
+    "text_effects": {
+      "type": "typewriter",
+      "description": "The terminal demo replays real frames from the product's parity fixtures at a typing cadence, with a solid block caret. Nothing else on the page animates text; headings never split or shimmer.",
+      "technology": "vanilla JS + requestAnimationFrame",
+      "params": {
+        "split_strategy": "by-line",
+        "animation_per_unit": "12-28ms per character, jittered",
+        "stagger": "none",
+        "effect_style": "terminal output, monospace, no easing on individual glyphs"
+      }
+    },
+    "cursor_effects": {
+      "enabled": false,
+      "type": "none",
+      "description": "The native cursor is kept; the product is a terminal tool and a custom cursor would read as a gimmick.",
+      "params": {
+        "shape": "native",
+        "size": "native",
+        "blend_mode": "none",
+        "trail": "none",
+        "interaction_zone": "none"
+      }
+    },
+    "image_effects": {
+      "type": "none",
+      "description": "The only image is the jet mark: it drifts 2px and tilts 2deg on hover of the brand lockup, nothing more.",
+      "technology": "CSS transform",
+      "params": {
+        "filter_pipeline": "none",
+        "hover_transform": "translate(2px,-2px) rotate(-2deg)",
+        "reveal_animation": "fade only",
+        "distortion_type": "none"
+      }
+    },
+    "glassmorphism_neumorphism": {
+      "enabled": true,
+      "style": "glass",
+      "params": {
+        "blur_radius": "20px",
+        "transparency": "0.72",
+        "border_treatment": "0.5px inset hairline rgba(255,255,255,0.10) plus a 1px top highlight at rgba(255,255,255,0.06)",
+        "shadow_type": "soft diffused bloom, no inner shadow",
+        "light_source_angle": "top, 90deg"
+      }
+    },
+    "canvas_drawings": {
+      "enabled": false,
+      "type": "none",
+      "description": "No canvas. The architecture diagram and the terminal are DOM, so they stay selectable, searchable and accessible.",
+      "technology": "none",
+      "params": {
+        "draw_method": "none",
+        "animation_loop": "none",
+        "color_scheme": "n/a",
+        "responsiveness": "n/a",
+        "interaction": "none"
+      }
+    },
+    "svg_animations": {
+      "enabled": false,
+      "type": "none",
+      "description": "The jet mark is a 257-path traced illustration; path-drawing it would cost 200KB of stroke work for an effect the product never had. It fades in with the hero.",
+      "params": {
+        "animation_method": "none",
+        "path_morphing": "none",
+        "stroke_animation": "none",
+        "filter_effects": "none"
+      }
+    },
+    "composite_notes": "The page is one continuous atmosphere: a fixed backdrop layer (three drifting radial fields, one masked dot grid) sits under every section, so scrolling moves content over a field that is already moving. Surfaces are deliberately semi-transparent where they meet the field (#1b1c1f at 92%, cards at 88%) so the drift reads through the glass rather than being covered by it \u2014 this is also what keeps the measured palette honest, since the reference's #232937 and #2c345a are blends of field over background, not flat fills. The frosted composer in the hero is the only true glass surface; every other card is flat with a hairline. Performance: no filters on moving elements, no per-frame layout, one IntersectionObserver, one rAF loop that stops when the demo is off-screen. The terminal demo replays frames captured from internal/tui2/parity/testdata/tool-call-80.txt, so the text on the page is the product's own output, not invented copy. Verification note: the design-dna colour check scores mean \u0394E 0.28 against the full reference frame and 1.72 against its content column, i.e. the palette is reproduced. Coverage drift stays above the 0.35 threshold in both cases (0.75 / 0.92) because the reference is an application frame \u2014 a 280px solid sidebar plus a composer card occupy roughly half of it \u2014 while a marketing hero is one field with two text columns. Drift here measures content composition, not colour fidelity; the palette entries themselves all land within \u0394E 8.2 of a measured cluster."
+  }
+}

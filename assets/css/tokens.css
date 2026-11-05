@@ -1,0 +1,183 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   Yazi product page — design tokens.
+
+   Every value here traces to design/dna.json, which was measured from the
+   shipped Yazi web client (see design/README.md). Nothing in site.css may
+   declare a colour, radius, shadow or type size that is not in this file.
+   ───────────────────────────────────────────────────────────────────────── */
+
+/* Montserrat 300/400/500 — the product's brand face (SIL OFL, see
+   assets/fonts/Montserrat-OFL.txt). Only these three weights ship. */
+@font-face {
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url(../fonts/montserrat-light.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(../fonts/montserrat-regular.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url(../fonts/montserrat-medium.woff2) format('woff2');
+}
+
+:root {
+  /* ── Colour ──────────────────────────────────────────────────────────
+     neutral.scale, lightest → darkest (dna.design_system.color.neutral) */
+  --n-00: #f7f8f9;   /* primary text, primary button fill */
+  --n-10: #d2d4d7;   /* secondary body */
+  --n-20: #bcbec2;   /* tertiary */
+  --n-30: #a8acb2;   /* lede, tertiary labels */
+  --n-40: #94989e;   /* muted labels, captions */
+  --n-50: #8c9096;   /* dim metadata */
+  --n-60: #414149;   /* borders, dividers */
+  --n-70: #232937;   /* elevated surface */
+  --n-80: #1b1c1f;   /* card surface */
+  --n-90: #151517;   /* page background */
+
+  --surface-bg: var(--n-90);
+  --surface-card: var(--n-80);
+  --surface-elevated: var(--n-70);
+
+  --accent: #2c345a;          /* the cool-blue field / deep accent */
+  --accent-bright: #4c5e85;   /* accent at readable strength */
+  --accent-light: #cbddfb;    /* accent text on dark */
+
+  --text-primary: var(--n-00);
+  --text-secondary: var(--n-10);
+  --text-tertiary: var(--n-30);
+  --text-muted: var(--n-40);
+  --text-dim: var(--n-50);
+
+  --border: var(--n-60);
+  --border-soft: rgba(255, 255, 255, 0.06);
+  --border-mid: rgba(255, 255, 255, 0.12);
+  --border-strong: rgba(255, 255, 255, 0.2);
+
+  --hover: rgba(255, 255, 255, 0.06);
+  --active: rgba(255, 255, 255, 0.14);
+
+  /* Surface tints. The DNA specifies that surfaces are semi-transparent where
+     they meet the drifting field, so the field reads through the glass instead
+     of being covered by it. Each is a palette colour plus the alpha that
+     produces the measured composite; they live here so site.css holds no
+     colour literals. */
+  --tint-card: rgba(27, 28, 31, 0.88);      /* cards over the field */
+  --tint-card-soft: rgba(27, 28, 31, 0.72); /* bands and callouts */
+  --tint-card-faint: rgba(27, 28, 31, 0.6);
+  --tint-well: rgba(21, 21, 23, 0.9);       /* code and snippet wells */
+  --tint-well-soft: rgba(21, 21, 23, 0.78);
+  --tint-well-faint: rgba(21, 21, 23, 0.7);
+  --tint-nav: rgba(21, 21, 23, 0.82);       /* scrolled nav material */
+  --tint-menu: rgba(21, 21, 23, 0.96);
+  --tint-foot: rgba(21, 21, 23, 0.6);
+  --tint-accent: rgba(44, 52, 90, 0.34);    /* accent-filled nodes */
+  --tint-accent-soft: rgba(44, 52, 90, 0.22);
+  --tint-raise: rgba(255, 255, 255, 0.03);  /* one step up from the surface */
+  --tint-raise-2: rgba(255, 255, 255, 0.05);
+  --tint-raise-3: rgba(255, 255, 255, 0.07);
+  --tint-raise-4: rgba(255, 255, 255, 0.14);
+  --tint-raise-5: rgba(255, 255, 255, 0.22);
+  --tint-highlight: rgba(255, 255, 255, 0.06); /* 1px inner top edge */
+  --tint-success-glow: rgba(78, 209, 126, 0.14);
+  --tint-field-fade: rgba(44, 52, 90, 0.1);
+
+  /* Code-block syntax. These are the only hues outside the measured palette:
+     a code sample needs to distinguish string from number, and the product's
+     own TUI themes carry the same two roles. Both clear 4.5:1 on --n-90. */
+  --code-string: #a8d5a2;
+  --code-number: #d9b98a;
+
+  --success: #4ed17e;
+  --warning: #f5a623;
+  --error: #f25a5a;
+
+  /* The drifting fields, from the client's --yz-blob-* tokens. */
+  /* Measured from the client's landing surface: the reference is 24% #232937
+     and 12% #2c345a, i.e. the field is a real presence, not a hint. These are
+     the client's own --yz-blob-* values with the opacity the measurement
+     implies. */
+  --field-1: rgba(56, 74, 150, 0.70);
+  --field-2: rgba(150, 110, 255, 0.34);
+  --field-3: rgba(56, 190, 220, 0.26);
+  --field-wash: rgba(44, 52, 90, 0.22);
+  --grid-dot: rgba(247, 248, 249, 0.07);
+
+  /* ── Type ────────────────────────────────────────────────────────────
+     dna.design_system.typography */
+  --font-heading: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
+    'Hiragino Sans GB', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-mono: 'SF Mono', 'JetBrains Mono', 'Fira Code', Consolas,
+    'Liberation Mono', Menlo, monospace;
+
+  --fs-display: clamp(3rem, 1.2rem + 5.6vw, 5.5rem);  /* 88px */
+  --fs-h2: clamp(1.75rem, 1.2rem + 2.2vw, 2.375rem);    /* 38px */
+  --fs-h3: 1.3125rem;                                   /* 21px */
+  --fs-body: 1.0625rem;                                 /* 17px */
+  --fs-sm: 0.9375rem;                                   /* 15px */
+  --fs-caption: 0.8125rem;                              /* 13px */
+  --fs-overline: 0.6875rem;                             /* 11px */
+
+  --lh-display: 0.94;
+  --lh-h1: 1.04;
+  --lh-h2: 1.12;
+  --lh-h3: 1.3;
+  --lh-body: 1.65;
+  --lh-sm: 1.6;
+  --lh-caption: 1.5;
+
+  --tr-display: -0.035em;
+  --tr-h1: -0.025em;
+  --tr-h2: -0.02em;
+  --tr-h3: -0.01em;
+  --tr-body: -0.005em;
+  --tr-overline: 0.18em;
+
+  /* ── Space (base_unit 4px) ───────────────────────────────────────────*/
+  --s-1: 0.25rem;   /* 4  */
+  --s-2: 0.5rem;    /* 8  */
+  --s-3: 0.75rem;   /* 12 */
+  --s-4: 1rem;      /* 16 */
+  --s-5: 1.5rem;    /* 24 */
+  --s-6: 2rem;      /* 32 */
+  --s-7: 3rem;      /* 48 */
+  --s-8: 4rem;      /* 64 */
+  --s-9: 6rem;      /* 96 */
+  --s-10: 8rem;     /* 128 */
+  --s-11: 10rem;    /* 160 */
+
+  /* ── Layout ──────────────────────────────────────────────────────────*/
+  --wrap: 1240px;
+  --gutter: var(--s-5);
+  --nav-h: 64px;
+  --touch-target: 44px;
+
+  /* ── Shape ───────────────────────────────────────────────────────────*/
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 20px;
+  --r-pill: 999px;
+
+  /* ── Elevation: 0.5px hairline + two low-opacity blooms ──────────────*/
+  --shadow-low: 0 0 0 0.5px rgba(255, 255, 255, 0.06), 0 2px 6px rgba(0, 0, 0, 0.28);
+  --shadow-med: 0 0 0 0.5px rgba(255, 255, 255, 0.09), 0 4px 16px rgba(0, 0, 0, 0.32),
+    0 0 24px rgba(0, 0, 0, 0.22);
+  --shadow-high: 0 0 0 0.5px rgba(255, 255, 255, 0.12), 0 12px 40px rgba(0, 0, 0, 0.48),
+    0 0 64px rgba(44, 52, 90, 0.35);
+
+  /* ── Motion ──────────────────────────────────────────────────────────*/
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-micro: 100ms;
+  --dur-normal: 200ms;
+  --dur-macro: 300ms;
+}

@@ -1,0 +1,464 @@
+INDEX = r"""
+  <!-- ══ HERO ══════════════════════════════════════════════════════════ -->
+  <section class="hero" id="top">
+    <div class="wrap">
+      <div class="hero__grid">
+
+        <div class="hero__copy">
+          <h1 class="hero__title" data-split>
+            <span class="line">Where it all</span>
+            <span class="line">starts.</span>
+          </h1>
+          <p class="hero__lede hero__lede--strong">
+            A coding-agent runtime that resumes long-running work from saved checkpoints.
+          </p>
+          <p class="hero__lede hero__lede--detail">
+            Yazi saves task progress in SQLite and keeps the full transcript searchable.
+            For a claimed task, it rebuilds the model's context from the latest checkpoint.
+          </p>
+          <div class="hero__cta" data-reveal>
+            <a class="btn btn--primary" href="install.html" data-magnetic>
+              Install Yazi
+              <svg class="btn__icon" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </a>
+            <a class="btn btn--ghost" href="#mechanisms" data-magnetic>See how it works</a>
+          </div>
+        </div>
+
+        <div class="hero__demo" data-reveal>
+          <div class="hero__demo-inner" data-parallax="0.03">
+          <figure class="tui" data-terminal>
+            <div class="tui__screen">
+              <div class="tui__header">
+                <pre class="tui__logo" aria-hidden="true">              :=**+:
+    .    .-+***+-
+   :=+=:-**+=.
+.-++=::--::
+-###*+:=*-:
+:+**+==+*=
+      .=+:</pre>
+                <div class="tui__meta">
+                  <div class="tui__meta-row"><span class="tui__meta-name">Yazi </span><span class="tui__meta-val">v0.1.0-dev</span></div>
+                  <div class="tui__meta-row"><span class="tui__meta-key">sessions </span><span class="tui__meta-val">3</span></div>
+                  <div class="tui__meta-row"><span class="tui__meta-key">endpoints </span><span class="tui__meta-val">local</span></div>
+                  <div class="tui__meta-row"><span class="tui__meta-key">cwd </span><span class="tui__meta-val">~/src/yazi</span></div>
+                </div>
+              </div>
+
+              <div class="tui__log" data-terminal-out aria-label="Example Yazi session resuming after a disconnect">
+                <p class="tui__user">Run the parity tests</p>
+                <p class="tui__assistant">Preparing the test run.</p>
+                <p class="tui__event">Checkpoint saved · rev 8</p>
+                <p class="tui__event is-disconnected">Terminal disconnected</p>
+                <p class="tui__event">$ yazi --continue</p>
+                <p class="tui__event is-resumed">Session restored · rev 8</p>
+                <div class="tui__tool is-done">
+                  <div class="tui__tool-head">shell · <span class="tui__tool-state">done</span></div>
+                  <div class="tui__tool-cmd">$ go test ./internal/tui2/parity</div>
+                  <div class="tui__tool-out">ok  internal/tui2/parity    0.12s</div>
+                  <div class="tui__tool-time">Took 0.0s</div>
+                </div>
+                <p class="tui__assistant">All four scenarios passed.</p>
+              </div>
+
+              <p class="sr-only" data-terminal-live role="log" aria-live="polite" aria-atomic="false"></p>
+
+              <div class="tui__hint">
+                <span class="tui__state"><span class="tui__spinner" data-spinner aria-hidden="true"></span><span data-state></span></span>
+                <span class="tui__mode">Illustrative replay</span>
+              </div>
+
+              <div class="tui__prompt" aria-hidden="true"><span class="tui__prompt-glyph">&gt;</span><span class="tui__cursor"></span></div>
+            </div>
+          </figure>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ THE MECHANISMS ════════════════════════════════════════════════ -->
+  <section class="section section--rule" id="mechanisms">
+    <div class="wrap">
+      <header class="section__head" data-reveal>
+        <h2 class="h2">Three things keep a long job alive.</h2>
+      </header>
+
+      <!-- 01 -->
+      <div class="split split--wide split--feature" id="revisioned-state">
+        <div class="split__text" data-reveal>
+          <h3 class="h3 h3--lg">Work has an owner, and a revision.</h3>
+          <p class="lede">
+            Specs, tasks and claims live in SQLite with a revision that only
+            goes up. Every write names the revision it expects, so a slow worker
+            gets a conflict instead of overwriting newer work.
+          </p>
+        </div>
+        <div class="split__figure" data-reveal>
+          <figure class="race" data-race aria-label="Two workers attempt the same task checkpoint. The second worker's retry is rejected because its expected revision is stale.">
+            <div class="race__head">
+              <span class="mono race__label">task checkpoint</span>
+              <span class="pill pill--mono">rev <b data-race-rev>7</b></span>
+            </div>
+            <div class="race__rows">
+              <div class="race__row" data-race-row="a">
+                <span class="race__who mono">worker A</span>
+                <span class="race__what">claim gen 3 · rev 7</span>
+                <span class="race__verdict" data-race-verdict>accepted</span>
+              </div>
+              <div class="race__row" data-race-row="b">
+                <span class="race__who mono">worker B</span>
+                <span class="race__what">claim gen 3 · rev 7</span>
+                <span class="race__verdict" data-race-verdict>accepted</span>
+              </div>
+              <div class="race__row race__row--stale" data-race-row="b2">
+                <span class="race__who mono">worker B</span>
+                <span class="race__what">claim gen 3 · rev 7</span>
+                <span class="race__verdict" data-race-verdict>rejected</span>
+              </div>
+            </div>
+            <div class="race__foot">
+              <span class="mono">expected_revision 7 ≠ current 8</span>
+              <span class="mono race__foot-note">reload and stop</span>
+            </div>
+          </figure>
+        </div>
+      </div>
+
+      <!-- 02 -->
+      <div class="split split--wide split--feature split--flip" id="bounded-episodes">
+        <div class="split__text" data-reveal>
+          <h3 class="h3 h3--lg">A fresh context that doesn't pretend.</h3>
+          <p class="lede">
+            When a task is claimed, Yazi builds the model's context from the
+            database: the objective, the constraints you actually gave, the
+            checkpoint and the evidence.
+          </p>
+        </div>
+        <div class="split__figure" data-reveal>
+          <figure class="episode" aria-label="The context contains canonical task state and this episode's messages. It leaves out the previous episode, compaction summaries, and the model's recollection.">
+            <div class="episode__col episode__col--in">
+              <h4 class="episode__head mono">in context</h4>
+              <ul class="episode__list">
+                <li>objective</li>
+                <li>your constraints, verbatim</li>
+                <li>the checkpoint</li>
+                <li>evidence</li>
+                <li>this episode</li>
+              </ul>
+            </div>
+            <div class="episode__col episode__col--out">
+              <h4 class="episode__head mono">left out</h4>
+              <ul class="episode__list episode__list--muted">
+                <li>the last episode</li>
+                <li>summaries</li>
+                <li>what the model thinks it tried</li>
+              </ul>
+            </div>
+          </figure>
+        </div>
+      </div>
+
+      <!-- 03 -->
+      <div class="split split--wide split--feature" id="continual-harness">
+        <div class="split__text" data-reveal>
+          <h3 class="h3 h3--lg">It writes down what it learned.</h3>
+          <p class="lede">
+            On an interval, or at compaction, Yazi reviews the trajectory and
+            edits its own operating knowledge: memories, skills, prompt
+            templates. Every edit is revisioned and can be rolled back.
+          </p>
+        </div>
+        <div class="split__figure" data-reveal>
+          <figure class="harness" aria-label="A trajectory is reviewed, producing a bounded proposal that edits memories, skills and prompt templates, with rollback available.">
+            <div class="harness__stage">
+              <span class="harness__node">trajectory</span>
+              <span class="harness__flow" aria-hidden="true"></span>
+              <span class="harness__node harness__node--accent">review</span>
+              <span class="harness__flow" aria-hidden="true"></span>
+              <span class="harness__node">proposal</span>
+            </div>
+            <div class="harness__fan" aria-hidden="true"><i></i><i></i><i></i></div>
+            <div class="harness__targets">
+              <span class="harness__target">memories</span>
+              <span class="harness__target">skills</span>
+              <span class="harness__target">prompt templates</span>
+            </div>
+            <div class="harness__foot">
+              <span class="mono harness__foot-ok">changeset → rollback</span>
+            </div>
+          </figure>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ FEATURES ══════════════════════════════════════════════════════ -->
+  <section class="section section--rule" id="features">
+    <div class="wrap">
+      <header class="section__head" data-reveal>
+        <h2 class="h2">What you can do with Yazi</h2>
+      </header>
+
+      <div class="caps caps--workflows">
+        <article class="cap" data-reveal id="history">
+          <h3 class="h3">Resume a saved task</h3>
+          <p>
+            Return to a saved session with <code>yazi --continue</code>. The full
+            transcript stays searchable, and a claimed task carries its own
+            checkpoint into the model's next episode.
+          </p>
+          <figure class="fig" aria-hidden="true">
+            <div class="fig__head mono">session 7c41</div>
+            <div class="fig__body">
+              <div class="fig__row">
+                <span class="fig__dot fig__dot--ok"></span>
+                <span class="fig__k mono">rev 6</span>
+                <span class="fig__v">checkpoint saved</span>
+              </div>
+              <div class="fig__gap mono">terminal closed</div>
+              <div class="fig__row">
+                <span class="fig__dot fig__dot--live"></span>
+                <span class="fig__k mono">rev 8</span>
+                <span class="fig__v">restored</span>
+              </div>
+            </div>
+          </figure>
+        </article>
+
+        <article class="cap" data-reveal id="endpoints">
+          <h3 class="h3">Run it somewhere else</h3>
+          <p>
+            A named SSH endpoint moves the shell, files, Python and processes to
+            another machine. Credentials and history stay on your laptop.
+          </p>
+          <figure class="fig" aria-hidden="true">
+            <div class="fig__head mono">endpoint buildbox</div>
+            <div class="fig__split">
+              <div class="fig__col">
+                <span class="fig__colhead mono">stays local</span>
+                <span>credentials</span>
+                <span>history</span>
+                <span>provider traffic</span>
+              </div>
+              <div class="fig__col fig__col--moves">
+                <span class="fig__colhead mono">moves over ssh</span>
+                <span>shell</span>
+                <span>files</span>
+                <span>python</span>
+              </div>
+            </div>
+          </figure>
+        </article>
+
+        <article class="cap" data-reveal id="acp">
+          <div class="cap__body">
+            <h3 class="h3">Bring your own agent</h3>
+            <p>
+              Point a session at Claude Code, Codex or OpenCode. The agent keeps
+              its own login. Yazi supplies the tools, the sandbox and the
+              transcript. Switch back and its turns are ordinary history.
+            </p>
+          </div>
+          <div class="cap__figure">
+            <figure class="acp" aria-label="A session switching between Yazi's models and external ACP agents, each keeping its own session.">
+              <div class="acp__row acp__row--yazi">
+                <span class="acp__who">yazi</span>
+                <span class="acp__what mono">native models</span>
+              </div>
+              <div class="acp__swap" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 7h11l-3-3M16 13H5l3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <div class="acp__row">
+                <span class="acp__who">claude-acp</span>
+                <span class="acp__what mono">haiku</span>
+              </div>
+              <div class="acp__row">
+                <span class="acp__who">codex-acp</span>
+                <span class="acp__what mono">gpt-6-luna</span>
+              </div>
+            </figure>
+          </div>
+        </article>
+      </div>
+
+      <h3 class="h3 features__subhead">Tools for longer jobs</h3>
+      <div class="caps">
+        <article class="cap cap--wide" data-reveal>
+          <div class="cap__body">
+            <h4 class="h3">Read less, know more</h4>
+            <p>
+              Reading a file to find out what is in it is how an agent wastes
+              context. <code>index</code> returns the skeleton instead, so the
+              model reads only the lines that matter.
+            </p>
+          </div>
+          <div class="cap__figure">
+            <figure class="skeleton" aria-label="Example index output for a Go file: imports, types with fields and methods, and functions, each with a line range.">
+              <div class="skeleton__head mono">skeleton internal/tool/file/read.go</div>
+              <pre class="skeleton__body"><span class="sk-k">imports</span>: [4-14]
+<span class="sk-k">types</span>:
+  <span class="sk-t">type Config struct</span> [18-21]
+    Cwd <span class="sk-y">string</span>
+  <span class="sk-t">type Read struct</span> [23]
+    <span class="sk-f">func (r *Read) Invoke(...)</span> [57-124]
+<span class="sk-k">fns</span>:
+  <span class="sk-f">func NewRead(config)</span> [25-30]</pre>
+            </figure>
+          </div>
+        </article>
+
+        <article class="cap" data-reveal id="cache">
+          <h4 class="h3">Built to hit the cache</h4>
+          <p>
+            Yazi appends to context files so edits preserve the cached prefix.
+            A loopback test measured a <b>98.24%</b> warm cache rate under churn.
+          </p>
+          <p class="cap__meta">Loopback provider · 3 trials · 10 turns</p>
+          <div class="cap__gauge" aria-hidden="true">
+            <div class="gauge" data-gauge><i></i></div>
+            <span class="mono gauge__label">warm cache rate</span>
+          </div>
+        </article>
+
+        <article class="cap" data-reveal id="rlm">
+          <h4 class="h3">Children with their own context</h4>
+          <p>
+            The model spawns children that get their own context, Python
+            runtime and model settings. They run at the same time and survive
+            the parent compacting.
+          </p>
+          <div class="cap__tree" aria-hidden="true">
+            <div class="cap__node cap__node--root">parent</div>
+            <div class="cap__kids"><i></i><i></i><i></i></div>
+            <div class="cap__leaves">
+              <span>reviewer</span><span>builder</span><span>tester</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="cap" data-reveal id="gates">
+          <h4 class="h3">Prompt and forget</h4>
+          <p>
+            Give it a goal and walk away. Completion gates are real commands,
+            <code>go test</code> or <code>git diff --check</code>, that have to
+            pass before it stops. A failure feeds output back and it keeps
+            going.
+          </p>
+          <figure class="fig" aria-hidden="true">
+            <div class="fig__head mono">completion gates</div>
+            <div class="fig__body">
+              <div class="fig__row">
+                <span class="fig__dot fig__dot--ok"></span>
+                <span class="fig__k mono">go test ./...</span>
+                <span class="fig__v">pass</span>
+              </div>
+              <div class="fig__row">
+                <span class="fig__dot fig__dot--bad"></span>
+                <span class="fig__k mono">git diff --check</span>
+                <span class="fig__v">fail · retry</span>
+              </div>
+              <div class="fig__row">
+                <span class="fig__dot fig__dot--ok"></span>
+                <span class="fig__k mono">git diff --check</span>
+                <span class="fig__v">pass</span>
+              </div>
+            </div>
+          </figure>
+        </article>
+
+        <article class="cap" data-reveal id="sandbox">
+          <h4 class="h3">A sandbox that doesn't nag</h4>
+          <p>
+            Seatbelt on macOS, rootless <code>runc</code> on Linux, deny-default
+            out of the box. It asks once for a resource and remembers the
+            answer.
+          </p>
+          <figure class="fig" aria-hidden="true">
+            <div class="fig__head mono">workspace</div>
+            <div class="fig__body">
+              <div class="fig__row">
+                <span class="fig__dot fig__dot--ok"></span>
+                <span class="fig__k mono">~/src/yazi</span>
+                <span class="fig__v">read write</span>
+              </div>
+              <div class="fig__row">
+                <span class="fig__dot fig__dot--ok"></span>
+                <span class="fig__k mono">home · cache · tmp</span>
+                <span class="fig__v">private</span>
+              </div>
+              <div class="fig__row">
+                <span class="fig__dot fig__dot--bad"></span>
+                <span class="fig__k mono">~/.ssh</span>
+                <span class="fig__v">denied</span>
+              </div>
+            </div>
+          </figure>
+        </article>
+
+        <article class="cap" data-reveal id="surfaces-qr">
+          <h4 class="h3">One session, two surfaces</h4>
+          <p>
+            The TUI and the web UI are the same runtime. Start the web surface,
+            then scan the pairing code printed by Yazi to open the same session on your phone.
+          </p>
+          <figure class="fig fig--qr" aria-hidden="true">
+            <div class="fig__head mono">pair to attach</div>
+            <div class="fig__qrbody">
+              <div class="qr" data-qr></div>
+              <div class="fig__qrtext">
+                <span class="mono">yazi://pair</span>
+                <span>Same session, same queue, same processes.</span>
+              </div>
+            </div>
+          </figure>
+        </article>
+
+        <article class="cap" data-reveal id="nix">
+          <h4 class="h3">Nix as a tool source</h4>
+          <p>
+            The agent runs <code>nix shell nixpkgs#&lt;package&gt;</code> instead
+            of installing with npm, pip, brew or apt. A missing tool costs
+            seconds.
+          </p>
+          <figure class="fig fig--code" aria-hidden="true">
+            <div class="fig__head mono">one command</div>
+            <pre class="fig__code"><span class="c-com"># no global install</span>
+nix shell nixpkgs#ripgrep <span class="c-str">-c</span> <span class="c-str">"rg TODO"</span></pre>
+          </figure>
+        </article>
+
+        <article class="cap" data-reveal id="plugins">
+          <h4 class="h3">A plugin system that runs Doom</h4>
+          <p>
+            It is so extensible that you can even run DOOM through it.
+            Plugins are Python, out of process, and add tools, commands,
+            hooks, UI and model providers.
+          </p>
+          <figure class="fig" aria-hidden="true">
+            <div class="fig__head mono">plugin surface</div>
+            <div class="fig__tags">
+              <span>tools</span><span>commands</span><span>hooks</span>
+              <span>ui</span><span>providers</span>
+            </div>
+          </figure>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ INSTALL ═══════════════════════════════════════════════════════ -->
+  <section class="section section--rule" id="install">
+    <div class="wrap">
+      <div class="cta" data-reveal>
+        <h2 class="cta__title">Run your first task.</h2>
+        <p class="cta__note">Choose your OS, connect a provider, and check that Yazi is ready.</p>
+        <div class="cta__actions">
+          <a class="btn btn--primary" href="install.html">Install Yazi</a>
+          <a class="btn btn--ghost" href="https://src.krea.to/kreato/yazi/releases">View releases</a>
+        </div>
+      </div>
+    </div>
+  </section>
+"""

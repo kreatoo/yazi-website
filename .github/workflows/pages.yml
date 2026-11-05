@@ -1,0 +1,69 @@
+name: Deploy to GitHub Pages
+
+# The site is generated: tools/build.py writes index.html and install.html from
+# one shell plus the page modules. The generated files are committed so the site
+# opens without a build, which means a stale page is possible if someone edits a
+# module and forgets to rebuild. This workflow rebuilds first, fails if the
+# output does not match what is committed, and only then deploys.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deployment at a time. A queued run is superseded rather than cancelled
+# mid-upload, which would leave Pages with a partial artifact.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Rebuild the pages
+        run: python3 tools/build.py
+
+      - name: Fail if the committed HTML is stale
+        run: |
+          if ! git diff --quiet -- '*.html'; then
+            echo "::error::Generated HTML does not match tools/. Run 'python3 tools/build.py' and commit the result."
+            git diff --stat -- '*.html'
+            exit 1
+          fi
+
+      - name: Check every internal link resolves
+        run: python3 tools/check-links.py
+
+      - name: Check the custom domain is present
+        run: test -f CNAME && test "$(cat CNAME)" = "yazi.krea.to"
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+  deploy:
+    needs: build
+    # A pull request builds and validates, but only main publishes.
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

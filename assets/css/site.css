@@ -1,0 +1,2689 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   Yazi product page — site styles.
+
+   Every colour, radius, shadow, type size and spacing step comes from
+   assets/css/tokens.css (which traces to design/dna.json). This file declares
+   no literal design values: if a value is not a token, it is a layout
+   calculation (a percentage, a clamp, a grid track) rather than a design
+   decision.
+
+   Structure follows the DNA's composition: one vertical document, two
+   asymmetric two-column breaks, hairline containment instead of card walls,
+   and a fixed atmosphere layer behind everything.
+   ───────────────────────────────────────────────────────────────────────── */
+
+/* ── Reset ─────────────────────────────────────────────────────────────── */
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html {
+  /* The atmosphere layer is deliberately larger than the viewport. Clipping at
+     the root is what actually stops it widening the scroll area — overflow on
+     the fixed layer itself does not, because a fixed box is not a scroll
+     container for the document. */
+  overflow-x: clip;
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--nav-h) + var(--s-5));
+}
+
+body {
+  margin: 0;
+  background: var(--surface-bg);
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  letter-spacing: var(--tr-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+img, svg { display: block; max-width: 100%; }
+
+h1, h2, h3, h4, p, figure, dl, dd, ul { margin: 0; }
+ul { padding: 0; list-style: none; }
+
+a { color: inherit; text-decoration: none; }
+
+code, .mono {
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  letter-spacing: 0;
+}
+
+::selection {
+  background: var(--accent-bright);
+  color: var(--n-00);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent-light);
+  outline-offset: 3px;
+  border-radius: var(--r-sm);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip {
+  position: absolute;
+  left: var(--s-5);
+  top: -100px;
+  z-index: 100;
+  padding: var(--s-3) var(--s-5);
+  background: var(--n-00);
+  color: var(--n-90);
+  border-radius: var(--r-md);
+  font-size: var(--fs-sm);
+  transition: top var(--dur-normal) var(--ease);
+}
+.skip:focus { top: var(--s-5); }
+
+/* ── Atmosphere ────────────────────────────────────────────────────────────
+   The client's Backdrop.svelte, ported. Three radial fields drifting on long
+   alternating loops and a dot grid panning under a radial mask. Drawn as
+   gradients rather than blurred boxes so the compositor moves them for free:
+   a filter on a moving layer would have to be recomputed every frame.
+
+   `position: fixed` here (the client scopes it to the centre column) because
+   this page is one continuous surface and the field should not end at a
+   section boundary. */
+
+.field {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  contain: strict;
+  /* The blobs are deliberately larger than the viewport and offset past its
+     edges. `clip` keeps them from widening the document's scroll area, which
+     `overflow: hidden` alone does not do for a fixed, contained layer. */
+  clip-path: inset(0);
+}
+
+.field::before {
+  content: '';
+  position: absolute;
+  inset: -20% -10%;
+  background: radial-gradient(
+    ellipse 62% 52% at 66% 24%,
+    var(--field-wash) 0%,
+    var(--tint-field-fade) 46%,
+    transparent 74%
+  );
+}
+
+.field__blob {
+  position: absolute;
+  margin: -70px;
+  padding: 70px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, var(--blob) 0%, var(--blob) 38%, transparent 100%);
+  will-change: transform;
+  animation: drift 22s ease-in-out infinite alternate;
+}
+
+.field__blob--1 {
+  width: 700px; height: 700px;
+  left: -2%; top: -22%;
+  --blob: var(--field-1);
+  animation-name: drift-1;
+}
+.field__blob--2 {
+  width: 600px; height: 600px;
+  right: -10%; top: 4%;
+  --blob: var(--field-2);
+  animation-name: drift-2;
+  animation-duration: 26s;
+}
+.field__blob--3 {
+  width: 560px; height: 560px;
+  left: 20%; bottom: -24%;
+  --blob: var(--field-3);
+  animation-name: drift-3;
+  animation-duration: 30s;
+}
+
+/* The mask holds still while the dots pan under it: one tile per loop, so the
+   wrap is seamless without animating background-position (which would repaint
+   the whole area every frame). */
+.field__grid {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  clip-path: inset(0);
+  -webkit-mask-image: radial-gradient(ellipse 62% 58% at 50% 38%, #000 0%, transparent 76%);
+  mask-image: radial-gradient(ellipse 62% 58% at 50% 38%, #000 0%, transparent 76%);
+}
+
+.field__dots {
+  position: absolute;
+  /* Inset on the top/left so the pan wraps seamlessly; the right/bottom edges
+     extend by the same amount so the tile never opens a gap. */
+  inset: -22px -22px -22px -22px;
+  background-image: radial-gradient(var(--grid-dot) 1px, transparent 1.2px);
+  background-size: 22px 22px;
+  will-change: transform;
+  animation: grid-pan 40s linear infinite;
+}
+
+@keyframes drift-1 {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(6%, 8%, 0) scale(1.08); }
+}
+@keyframes drift-2 {
+  from { transform: translate3d(0, 0, 0) scale(1.04); }
+  to   { transform: translate3d(-7%, 5%, 0) scale(1); }
+}
+@keyframes drift-3 {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(4%, -7%, 0) scale(1.1); }
+}
+@keyframes grid-pan {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(22px, 22px, 0); }
+}
+
+/* ── Layout primitives ─────────────────────────────────────────────────── */
+
+.wrap {
+  width: 100%;
+  max-width: var(--wrap);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+  position: relative;
+  z-index: 1;
+}
+
+.section {
+  position: relative;
+  z-index: 1;
+  padding-block: var(--s-9);
+}
+
+/* A full-bleed hairline between sections: the DNA's divider (1px, 6% white),
+   drawn as the section's own top edge so it spans the viewport. */
+.section--rule::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 1px;
+  background: var(--border-soft);
+}
+
+main [id] { scroll-margin-top: calc(var(--nav-h) + var(--s-4)); }
+
+.section--tight { padding-block: var(--s-8); }
+
+.section__head {
+  max-width: 62ch;
+  margin-bottom: var(--s-6);
+}
+
+/* Section heads now open on the heading itself. */
+.section__head .h2 { margin-top: var(--s-2); }
+
+/* The first feature split follows the section head directly, so it does not
+   need the full inter-feature padding on top of the head's margin. */
+.split--feature:first-of-type { padding-top: var(--s-5); }
+
+/* ── Type ──────────────────────────────────────────────────────────────── */
+
+.h2 {
+  font-family: var(--font-heading);
+  font-size: var(--fs-h2);
+  font-weight: 500;
+  line-height: var(--lh-h2);
+  letter-spacing: var(--tr-h2);
+  color: var(--text-primary);
+  text-wrap: balance;
+}
+
+.h3 {
+  font-family: var(--font-heading);
+  font-size: var(--fs-h3);
+  font-weight: 500;
+  line-height: var(--lh-h3);
+  letter-spacing: var(--tr-h3);
+  color: var(--text-primary);
+}
+
+.lede {
+  margin-top: var(--s-5);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  color: var(--text-tertiary);
+  max-width: 62ch;
+}
+
+.lede code,
+.card p code,
+.install__note code,
+.stats__note code {
+  padding: 0.1em 0.4em;
+  border-radius: var(--r-sm);
+  background: var(--tint-raise-2);
+  color: var(--text-secondary);
+  font-size: 0.88em;
+}
+
+/* ── Buttons ───────────────────────────────────────────────────────────────
+   Button.module.css geometry: 12px radius, 0.5px inset outline on the ghost
+   variant, 200ms ease, no lift on hover. */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-2);
+  height: 44px;
+  padding-inline: var(--s-5);
+  border: 0;
+  border-radius: var(--r-md);
+  font-family: var(--font-body);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  letter-spacing: 0;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color var(--dur-normal) var(--ease),
+              box-shadow var(--dur-normal) var(--ease),
+              color var(--dur-normal) var(--ease);
+}
+
+.btn--sm { height: 34px; padding-inline: var(--s-4); font-size: var(--fs-caption); }
+
+.btn--primary {
+  background: var(--n-00);
+  color: var(--n-90);
+}
+.btn--primary:hover { background: var(--n-10); }
+.btn--primary:active { background: var(--n-20); }
+
+.btn--ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  box-shadow: inset 0 0 0 0.5px var(--border-strong);
+}
+.btn--ghost:hover { background: var(--hover); color: var(--text-primary); }
+.btn--ghost:active { background: var(--active); }
+
+.btn__icon { transition: transform var(--dur-normal) var(--ease); }
+.btn--primary:hover .btn__icon { transform: translateX(2px); }
+
+/* ── Pills and chips ───────────────────────────────────────────────────────
+   Pill.module.css: 999px, 12px label, layer-2 fill. */
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  height: 22px;
+  padding-inline: var(--s-2);
+  border-radius: var(--r-pill);
+  background: var(--tint-raise-3);
+  color: var(--text-muted);
+  font-size: var(--fs-overline);
+  line-height: 1;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.pill--mono { font-family: var(--font-mono); letter-spacing: 0.04em; }
+
+.chips { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+
+.chip {
+  padding: var(--s-1) var(--s-3);
+  border-radius: var(--r-pill);
+  border: 1px solid var(--border-soft);
+  background: var(--tint-raise);
+  color: var(--text-tertiary);
+  font-family: var(--font-mono);
+  font-size: var(--fs-caption);
+  line-height: 1.7;
+}
+
+/* ── Navigation ────────────────────────────────────────────────────────── */
+
+.nav {
+  position: fixed;
+  inset-inline: 0;
+  top: 0;
+  z-index: 50;
+  height: var(--nav-h);
+  transition: background-color var(--dur-macro) var(--ease),
+              box-shadow var(--dur-macro) var(--ease),
+              backdrop-filter var(--dur-macro) var(--ease);
+}
+
+/* Transparent over the hero, then the client's frosted bar. */
+.nav.is-scrolled {
+  background: var(--tint-nav);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  backdrop-filter: blur(20px) saturate(140%);
+  box-shadow: 0 1px 0 0 var(--border-soft);
+}
+
+.nav__inner {
+  display: flex;
+  align-items: center;
+  gap: var(--s-6);
+  height: 100%;
+  max-width: var(--wrap);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  flex-shrink: 0;
+}
+
+.brand__mark {
+  width: 28px;
+  height: 28px;
+  transition: transform var(--dur-macro) var(--ease);
+}
+.brand:hover .brand__mark { transform: translate(2px, -2px) rotate(-2deg); }
+
+.brand__word {
+  font-family: var(--font-heading);
+  font-size: 1.0625rem;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.nav__links {
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+  margin-inline-start: auto;
+}
+
+.nav__links a {
+  position: relative;
+  font-size: var(--fs-caption);
+  color: var(--text-muted);
+  transition: color var(--dur-normal) var(--ease);
+}
+.nav__links a:hover,
+.nav__links a[aria-current='page'] { color: var(--text-primary); }
+
+/* The active marker is a 1px rule, not a pill: the DNA's hierarchy method is
+   typographic, so navigation emphasis is weight and a hairline. */
+.nav__links a[aria-current='page']::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  bottom: -6px;
+  height: 1px;
+  background: var(--text-primary);
+}
+
+.nav__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin-inline-start: var(--s-5);
+}
+
+.nav__toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--touch-target);
+  height: var(--touch-target);
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.nav__toggle[hidden],
+.snippet__copy[hidden] { display: none; }
+
+.nav__toggle:hover { background: var(--hover); }
+
+.nav__menu {
+  display: none;
+  flex-direction: column;
+  padding: var(--s-3) var(--gutter) var(--s-5);
+  background: var(--tint-menu);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 1px 0 0 var(--border-soft);
+}
+.nav__menu a {
+  min-height: var(--touch-target);
+  padding: var(--s-3) 0;
+  font-size: var(--fs-sm);
+  color: var(--text-tertiary);
+  border-bottom: 1px solid var(--border-soft);
+}
+.nav__menu a:last-child { border-bottom: 0; }
+
+/* ── Hero ──────────────────────────────────────────────────────────────── */
+
+.hero {
+  position: relative;
+  z-index: 1;
+  padding-top: calc(var(--nav-h) + var(--s-10));
+  padding-bottom: var(--s-10);
+}
+
+.hero__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: var(--s-8);
+  align-items: center;
+}
+
+.hero__title {
+  font-family: var(--font-heading);
+  font-size: var(--fs-display);
+  font-weight: 300;
+  line-height: var(--lh-display);
+  letter-spacing: var(--tr-display);
+  color: var(--text-primary);
+  text-wrap: balance;
+}
+
+.hero__lede {
+  margin-top: var(--s-6);
+  max-width: 46ch;
+  font-size: var(--fs-body);
+  color: var(--text-tertiary);
+}
+
+.hero__cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+  margin-top: var(--s-7);
+}
+
+.hero__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-6);
+  margin-top: var(--s-8);
+  padding-top: var(--s-5);
+  border-top: 1px solid var(--border-soft);
+}
+
+.hero__facts div { display: flex; flex-direction: column; gap: 2px; }
+
+.hero__facts dt {
+  font-family: var(--font-mono);
+  font-size: var(--fs-overline);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.hero__facts dd {
+  font-size: var(--fs-caption);
+  color: var(--text-secondary);
+}
+
+/* ── Cards ─────────────────────────────────────────────────────────────── */
+
+.grid { display: grid; gap: var(--s-4); }
+.grid--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.grid--4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+.card {
+  position: relative;
+  padding: var(--s-6);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-lg);
+  background: var(--tint-card);
+  transition: border-color var(--dur-normal) var(--ease),
+              box-shadow var(--dur-normal) var(--ease),
+              background-color var(--dur-normal) var(--ease);
+}
+
+.card:hover {
+  border-color: var(--border-mid);
+  box-shadow: var(--shadow-low);
+}
+
+.card p {
+  margin-top: var(--s-3);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-sm);
+  color: var(--text-muted);
+}
+
+.card__num {
+  display: block;
+  margin-bottom: var(--s-5);
+  font-size: var(--fs-caption);
+  color: var(--text-dim);
+  letter-spacing: 0.06em;
+}
+
+.card__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin-bottom: var(--s-5);
+  border-radius: var(--r-md);
+  border: 1px solid var(--border-soft);
+  background: var(--tint-raise);
+  color: var(--text-tertiary);
+  transition: color var(--dur-normal) var(--ease),
+              border-color var(--dur-normal) var(--ease);
+}
+
+.card--feature:hover .card__icon {
+  color: var(--accent-light);
+  border-color: var(--border-mid);
+}
+
+
+
+/* ── Split (text + figure) ─────────────────────────────────────────────── */
+
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+  gap: var(--s-9);
+  align-items: start;
+}
+
+.ticks {
+  margin-top: var(--s-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  /* The field's teal bloom drifts under this column. Body text at 15px needs
+     a stable ground, so the list carries the page colour rather than sitting
+     directly on the atmosphere. */
+  padding: var(--s-4) var(--s-5);
+  border-radius: var(--r-md);
+  background: var(--tint-well-faint);
+}
+
+.ticks li {
+  position: relative;
+  padding-left: var(--s-6);
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+.ticks li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 9px;
+  height: 1px;
+  background: var(--accent-bright);
+}
+
+.ticks strong { color: var(--text-secondary); font-weight: 500; }
+
+/* ── Architecture diagram ──────────────────────────────────────────────────
+   DOM, not canvas: it stays selectable, searchable and readable by a screen
+   reader. Nodes are hairlines and one step of luminance, matching the
+   product's own depth cues. */
+
+.diagram {
+  padding: var(--s-6);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-lg);
+  background: var(--tint-well-faint);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+.diagram__row { display: flex; flex-wrap: wrap; gap: var(--s-2); justify-content: center; }
+
+.node {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: var(--s-2) var(--s-3);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-sm);
+  background: var(--tint-raise);
+  color: var(--text-tertiary);
+  font-family: var(--font-mono);
+  font-size: var(--fs-caption);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.node--daemon {
+  margin-block: var(--s-2);
+  padding-block: var(--s-3);
+  border-color: var(--border-mid);
+  background: var(--tint-accent);
+  color: var(--text-primary);
+  font-family: var(--font-heading);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.node--soft {
+  border-style: dashed;
+  color: var(--text-dim);
+  font-size: var(--fs-overline);
+}
+
+.diagram__link {
+  display: flex;
+  justify-content: center;
+  padding-block: var(--s-2);
+}
+
+.diagram__link-label {
+  font-size: var(--fs-overline);
+  color: var(--text-dim);
+  letter-spacing: 0.04em;
+  padding-inline: var(--s-2);
+  position: relative;
+}
+.diagram__link-label::before,
+.diagram__link-label::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: var(--s-5);
+  height: 1px;
+  background: var(--border-soft);
+}
+.diagram__link-label::before { right: 100%; }
+.diagram__link-label::after { left: 100%; }
+
+/* The three-way branch under the daemon: one hairline stem splitting into
+   three, drawn with borders so it scales with the grid. */
+.diagram__branch {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s-3);
+  height: var(--s-5);
+}
+.diagram__branch i {
+  justify-self: center;
+  width: 1px;
+  height: 100%;
+  background: var(--border-soft);
+}
+
+.diagram__row--cols { align-items: stretch; gap: var(--s-3); }
+
+.col {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: var(--s-3);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-md);
+  background: var(--tint-card-faint);
+}
+
+.col__head {
+  display: block;
+  margin-bottom: var(--s-2);
+  font-size: var(--fs-overline);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.col__list { display: flex; flex-direction: column; gap: 5px; }
+.col__list li {
+  font-size: var(--fs-caption);
+  color: var(--text-muted);
+  padding-left: var(--s-3);
+  position: relative;
+}
+.col__list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.66em;
+  width: 5px;
+  height: 1px;
+  background: var(--border-mid);
+}
+
+.col--center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-2);
+  border-color: var(--border-mid);
+  background: var(--tint-accent-soft);
+}
+
+.col__well {
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--r-sm);
+  background: var(--tint-well-soft);
+  border: 1px solid var(--border-soft);
+  font-family: var(--font-mono);
+  font-size: var(--fs-caption);
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.col__foot {
+  font-size: var(--fs-overline);
+  color: var(--text-dim);
+  letter-spacing: 0.04em;
+}
+
+.diagram__base {
+  display: flex;
+  gap: var(--s-2);
+  margin-top: var(--s-3);
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--border-soft);
+}
+
+/* ── Code blocks ───────────────────────────────────────────────────────── */
+
+.codegrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s-4);
+}
+
+.code {
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-md);
+  background: var(--tint-well-soft);
+  overflow: hidden;
+  transition: border-color var(--dur-normal) var(--ease);
+}
+.code:hover { border-color: var(--border-mid); }
+
+.code__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  padding: var(--s-2) var(--s-4);
+  border-bottom: 1px solid var(--border-soft);
+  font-size: var(--fs-overline);
+  color: var(--text-dim);
+  letter-spacing: 0.04em;
+}
+.code__bar-note { color: var(--text-muted); }
+
+.code pre {
+  margin: 0;
+  padding: var(--s-4);
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: var(--fs-caption);
+  line-height: 1.72;
+  color: var(--text-secondary);
+  tab-size: 4;
+}
+.code code { font-family: inherit; font-size: inherit; letter-spacing: 0; }
+
+.c-kw { color: var(--accent-light); }
+.c-str { color: var(--code-string); }
+.c-num { color: var(--code-number); }
+.c-fn { color: var(--text-primary); }
+.c-com { color: var(--text-dim); }
+
+/* ── Sub-agents band ───────────────────────────────────────────────────── */
+
+.subagents {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.72fr);
+  gap: var(--s-8);
+  align-items: center;
+  margin-top: var(--s-4);
+  padding: var(--s-7);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-lg);
+  background: var(--tint-card-soft);
+}
+
+.subagents__text p {
+  margin-top: var(--s-3);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-sm);
+  color: var(--text-muted);
+  max-width: 58ch;
+}
+
+.subagents .chips {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s-2);
+}
+
+.subagents .chip { text-align: center; }
+
+/* ── Stats ─────────────────────────────────────────────────────────────── */
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--s-4);
+  padding-block: var(--s-6);
+  border-block: 1px solid var(--border-soft);
+}
+
+.stat { display: flex; flex-direction: column; gap: var(--s-1); }
+
+.stat__n {
+  font-size: clamp(1.5rem, 1rem + 1.6vw, 2.125rem);
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.stat__l {
+  font-size: var(--fs-caption);
+  color: var(--text-dim);
+}
+
+.stats__note {
+  margin-top: var(--s-5);
+  font-size: var(--fs-overline);
+  line-height: 1.8;
+  color: var(--text-dim);
+  max-width: 80ch;
+}
+.stats__note code { white-space: nowrap; }
+
+/* ── Install ───────────────────────────────────────────────────────────────
+   A numbered sequence, not a stack of bordered rows. Each step is a two-column
+   row: the instruction on the left, the thing you act on (a platform list, a
+   command) on the right. The rule between steps is the only divider, so the
+   page reads as one procedure.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+.pagehead .wrap,
+#steps .wrap {
+  max-width: calc(56rem + 2 * var(--gutter));
+}
+
+/* ── On-page jumps ──────────────────────────────────────────────────────── */
+
+.page-jumps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-1) var(--s-5);
+  margin-top: var(--s-5);
+}
+
+.page-jumps a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch-target);
+  font-size: var(--fs-caption);
+  color: var(--text-muted);
+  text-decoration: underline;
+  text-decoration-color: var(--border-mid);
+  text-underline-offset: 0.3em;
+  transition: color var(--dur-normal) var(--ease);
+}
+
+.page-jumps a:hover { color: var(--text-primary); }
+
+/* ── The steps ──────────────────────────────────────────────────────────── */
+
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  counter-reset: step;
+}
+
+.step {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: var(--s-7);
+  align-items: start;
+  padding-block: var(--s-7);
+  border-top: 1px solid var(--border-soft);
+}
+
+.step:first-child { border-top: 0; padding-top: 0; }
+
+/* The number is generated, so the markup stays a plain ordered list. */
+.step__title {
+  position: relative;
+  padding-left: 2.75rem;
+  font-family: var(--font-heading);
+  font-size: var(--fs-h3);
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+
+.step__title::before {
+  counter-increment: step;
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: 0.05em;
+  display: grid;
+  place-items: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 50%;
+  border: 1px solid var(--border-mid);
+  background: var(--tint-raise);
+  font-family: var(--font-mono);
+  font-size: var(--fs-caption);
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--text-muted);
+}
+
+.step__text {
+  margin-top: var(--s-3);
+  padding-left: 2.75rem;
+  max-width: 52ch;
+  font-size: var(--fs-sm);
+  line-height: 1.7;
+  color: var(--text-secondary);
+}
+
+.step__text--dim {
+  margin-top: var(--s-4);
+  font-size: var(--fs-caption);
+  color: var(--text-muted);
+}
+
+.step__text code,
+.install__caveat code {
+  padding: 0.1em 0.4em;
+  border-radius: var(--r-sm);
+  background: var(--tint-raise-2);
+  color: var(--text-secondary);
+  font-size: 0.9em;
+}
+
+.step__body { min-width: 0; }
+
+.step__aside { padding-top: var(--s-1); }
+
+/* ── Platform list ──────────────────────────────────────────────────────── */
+
+.plat-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.plat {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px var(--s-4);
+  padding: var(--s-4);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-md);
+  background: var(--tint-card);
+}
+
+.plat__os {
+  font-family: var(--font-heading);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.plat__arch {
+  font-size: var(--fs-caption);
+  color: var(--text-muted);
+  align-self: center;
+}
+
+.plat__note {
+  grid-column: 1 / -1;
+  font-size: var(--fs-caption);
+  line-height: 1.6;
+  color: var(--text-dim);
+}
+
+/* ── Snippets ───────────────────────────────────────────────────────────── */
+
+.step .snippet,
+.source .snippet {
+  margin-top: var(--s-4);
+  /* Align the snippet with the step text, which is indented past the number
+     badge. `display: flex` shrink-wraps by default, so the width is explicit:
+     a snippet narrower than its paragraph reads as a mistake. */
+  margin-left: 2.75rem;
+  width: calc(100% - 2.75rem);
+  max-width: 52ch;
+}
+
+.snippet {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-2) var(--s-2) var(--s-2) var(--s-4);
+  border-radius: var(--r-md);
+  background: var(--tint-well);
+  border: 1px solid var(--border-soft);
+}
+
+.snippet__code {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-caption);
+  line-height: 1.7;
+  color: var(--accent-light);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.snippet__copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  min-height: var(--touch-target);
+  padding: var(--s-2) var(--s-3);
+  border: 0;
+  border-radius: var(--r-sm);
+  background: var(--tint-raise-2);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--fs-caption);
+  cursor: pointer;
+  transition: background-color var(--dur-micro) var(--ease),
+              color var(--dur-micro) var(--ease);
+}
+.snippet__copy:hover { background: var(--hover); color: var(--text-primary); }
+.snippet__copy:active { background: var(--active); }
+.snippet__copy.is-copied { color: var(--success); }
+
+.snippet__feedback {
+  margin-top: var(--s-2);
+  margin-left: 2.75rem;
+  font-size: var(--fs-caption);
+  color: var(--text-muted);
+}
+
+/* ── Build from source ──────────────────────────────────────────────────── */
+
+.source {
+  margin-top: var(--s-4);
+  padding-block: var(--s-5);
+  border-top: 1px solid var(--border-soft);
+}
+
+.source summary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-3);
+  min-height: var(--touch-target);
+  padding: var(--s-2) var(--s-4) var(--s-2) 0;
+  cursor: pointer;
+  list-style: none;
+  border-radius: var(--r-sm);
+  transition: color var(--dur-normal) var(--ease);
+}
+
+.source summary:hover .source__label { color: var(--accent-light); }
+
+.source summary::-webkit-details-marker { display: none; }
+
+.source__label {
+  font-family: var(--font-heading);
+  font-size: var(--fs-h3);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+
+.source__hint {
+  font-size: var(--fs-overline);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+/* A chevron that turns when the section opens. */
+.source summary::after {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid var(--text-muted);
+  border-bottom: 1.5px solid var(--text-muted);
+  transform: rotate(45deg) translateY(-2px);
+  transition: transform var(--dur-normal) var(--ease);
+}
+
+.source[open] summary::after { transform: rotate(-135deg) translateY(-2px); }
+
+.source__body { padding-top: var(--s-2); }
+
+.source__body .step__text { padding-left: 0; }
+
+/* ── Caveat ─────────────────────────────────────────────────────────────── */
+
+.install__caveat {
+  margin-top: var(--s-7);
+  padding: var(--s-4) var(--s-5);
+  border-left: 1px solid var(--border-mid);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  background: var(--surface-card);
+  font-size: var(--fs-caption);
+  line-height: 1.75;
+  color: var(--text-muted);
+  max-width: 84ch;
+}
+
+.install a { color: var(--accent-light); }
+.step__text a { text-decoration: underline; text-underline-offset: 0.2em; }
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+
+@media (max-width: 900px) {
+  .step { grid-template-columns: minmax(0, 1fr); gap: var(--s-4); }
+  .step__aside { padding-top: 0; }
+  .step { padding-block: var(--s-6); }
+}
+
+@media (max-width: 640px) {
+  .step__title { padding-left: 2.25rem; }
+  .step__title::before { width: 1.6rem; height: 1.6rem; font-size: 0.75rem; }
+  .step__text { padding-left: 2.25rem; }
+  .step .snippet,
+  .source .snippet { margin-left: 0; }
+  .snippet__feedback { margin-left: 0; }
+  .source { padding-right: 0; }
+}
+
+/* ── Footer ────────────────────────────────────────────────────────────── */
+
+.foot {
+  position: relative;
+  z-index: 1;
+  padding-block: var(--s-9) var(--s-7);
+  border-top: 1px solid var(--border-soft);
+  background: var(--tint-foot);
+}
+
+.foot__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr));
+  gap: var(--s-8);
+}
+
+.foot__tag {
+  margin-top: var(--s-4);
+  font-size: var(--fs-caption);
+  line-height: 1.7;
+  color: var(--text-dim);
+  max-width: 34ch;
+}
+
+.foot__col { display: flex; flex-direction: column; gap: var(--s-2); }
+
+.foot__head {
+  margin-bottom: var(--s-2);
+  font-size: var(--fs-overline);
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.foot__col a {
+  font-size: var(--fs-caption);
+  color: var(--text-muted);
+  transition: color var(--dur-normal) var(--ease);
+  width: fit-content;
+}
+.foot__col a:hover { color: var(--text-primary); }
+
+.foot__meta { font-size: var(--fs-caption); color: var(--text-dim); }
+
+.foot__base {
+  margin-top: var(--s-8);
+  padding-top: var(--s-5);
+  border-top: 1px solid var(--border-soft);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.foot__line {
+  font-size: var(--fs-overline);
+  line-height: 1.8;
+  color: var(--text-dim);
+  max-width: 96ch;
+}
+.foot__line a { color: var(--text-muted); text-decoration: underline; text-decoration-color: var(--border-mid); }
+.foot__line a:hover { color: var(--text-primary); }
+.foot__line--dim { color: var(--text-muted); }
+
+/* ── Reveal ────────────────────────────────────────────────────────────────
+   fade-up, 300ms, once. JS adds .is-revealed; without JS everything is
+   visible (the .js class is set by the script's first line of work). */
+
+.js [data-reveal] {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity var(--dur-macro) var(--ease),
+              transform var(--dur-macro) var(--ease);
+}
+
+.js [data-reveal].is-revealed {
+  opacity: 1;
+  transform: none;
+}
+
+/* ── Responsive ────────────────────────────────────────────────────────── */
+
+@media (max-width: 1200px) {
+  .grid--4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .hero__grid { gap: var(--s-8); }
+  .split { grid-template-columns: minmax(0, 1fr); gap: var(--s-7); }
+  .subagents { grid-template-columns: minmax(0, 1fr); gap: var(--s-5); }
+  .subagents .chips { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 900px) {
+  :root { --gutter: var(--s-4); }
+
+  .section { padding-block: var(--s-9); }
+  .hero { padding-top: calc(var(--nav-h) + var(--s-8)); padding-bottom: var(--s-9); }
+
+  .nav__links { display: none; }
+  .nav__actions { margin-inline-start: auto; }
+  .nav__actions .btn--sm { min-height: var(--touch-target); }
+  .nav__toggle { display: inline-flex; }
+  .nav__menu:not([hidden]) { display: flex; }
+
+  .hero__grid { grid-template-columns: minmax(0, 1fr); gap: var(--s-7); }
+  .hero__lede { max-width: 54ch; }
+
+  .grid--3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .codegrid { grid-template-columns: minmax(0, 1fr); }
+  .install__platforms { grid-template-columns: minmax(0, 1fr); }
+
+  .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-5); }
+
+  .foot__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-6); }
+}
+
+@media (max-width: 640px) {
+  /* A 860px field in a 390px viewport is not an atmosphere, it is a wash: the
+     whole page becomes one colour and the type loses its ground. Scale the
+     field down with the viewport and pull the wash back. */
+  .field__blob--1 { width: 460px; height: 460px; }
+  .field__blob--2 { width: 400px; height: 400px; }
+  .field__blob--3 { width: 380px; height: 380px; }
+  .field::before { opacity: 0.55; }
+
+  .section { padding-block: var(--s-8); }
+  .section__head { margin-bottom: var(--s-6); }
+
+  .grid--3,
+  .grid--4 { grid-template-columns: minmax(0, 1fr); }
+  .subagents .chips { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  .hero__facts { gap: var(--s-5); }
+  .hero__cta .btn { width: 100%; }
+  .pagehead { padding-bottom: var(--s-5); }
+
+  .card { padding: var(--s-5); }
+  .subagents { padding: var(--s-5); }
+
+  .term__body { min-height: 240px; padding: var(--s-4); }
+  .t-line { font-size: 0.75rem; }
+
+  .diagram { padding: var(--s-4); }
+  .diagram__row--cols { flex-direction: column; }
+  .diagram__branch { display: none; }
+  .diagram__base { flex-direction: column; }
+
+  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .foot__grid { grid-template-columns: minmax(0, 1fr); }
+  .foot__base { margin-top: var(--s-6); }
+}
+
+/* ── Reduced motion ────────────────────────────────────────────────────────
+   The DNA's fallback strategy: fields hold still, the grid is dropped, the
+   reveal is instant, and the terminal renders its final frame. */
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+
+  .field__blob,
+  .field__dots,
+  .term__caret-block,
+  .t-line.is-typing::after { animation: none; }
+
+  .field__grid { display: none; }
+
+  .js [data-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* Coarse pointers and weak CPUs: drop the grid layer, stop the drift. The DNA
+   names this explicitly as the low-end fallback. */
+@media (hover: none) and (pointer: coarse) {
+  .field__grid { display: none; }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MOTION SYSTEM
+   ───────────────────────────────────────────────────────────────────────────
+   The DNA asks for "minimal functional" motion, but a product page has to sell
+   the product before the reader has read a word. The compromise: motion is
+   everywhere but it is *quiet* — short distances, one easing curve, no bounce,
+   and every effect explains a relationship (this line came from that one, this
+   card follows that card). Nothing spins, floats, or loops for decoration
+   except the backdrop, which is the page's atmosphere rather than its subject.
+
+   Layers, in order of application:
+     1. entrance   — masked line rise for headings, fade-up for blocks
+     2. scroll     — progress bar, nav material, parallax, section tracking
+     3. crossover  — the "handoff" effects: an element from one section visually
+                     continues into the next (the accent line, the race rows,
+                     the episode columns)
+     4. feedback   — magnetic buttons, card lift, snippet copy, caret
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* ── 1 · Entrance ───────────────────────────────────────────────────────── */
+
+/* Headings rise out of a mask, one line at a time. The mask is the .line
+   wrapper's overflow; the inner span is what moves, so the text is clipped by
+   its own line box rather than by the section. */
+.line {
+  display: block;
+  overflow: hidden;
+}
+
+.js .hero__title .line > span,
+.js .h2[data-split] .line > span {
+  display: block;
+  transform: translateY(110%);
+  transition: transform 900ms var(--ease);
+  transition-delay: calc(var(--i, 0) * 90ms);
+}
+
+.js .hero__title.is-revealed .line > span,
+.js .h2[data-split].is-revealed .line > span {
+  transform: translateY(0);
+}
+
+/* The hero title is above the fold and must not wait for an observer. */
+.js .hero__title .line > span { animation: line-rise 900ms var(--ease) both; }
+.js .hero__title .line:nth-child(1) > span { animation-delay: 120ms; }
+.js .hero__title .line:nth-child(2) > span { animation-delay: 210ms; }
+
+@keyframes line-rise {
+  from { transform: translateY(110%); }
+  to   { transform: translateY(0); }
+}
+
+/* Fade-up for blocks. Distance is short (14px) because the page is dense:
+   anything longer reads as a slideshow rather than a document. */
+.js [data-reveal] {
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 700ms var(--ease),
+    transform 700ms var(--ease);
+}
+
+.js [data-reveal].is-revealed {
+  opacity: 1;
+  transform: none;
+}
+
+/* A card that reveals also lifts its hairline slightly later, so a grid
+   resolves as a wave rather than a block. */
+.js .card[data-reveal] {
+  transition:
+    opacity 700ms var(--ease),
+    transform 700ms var(--ease),
+    border-color 700ms var(--ease) 120ms,
+    box-shadow 700ms var(--ease) 120ms;
+}
+
+/* ── 2 · Scroll ─────────────────────────────────────────────────────────── */
+
+/* Reading progress. 1px, accent, scaled on X so it never triggers layout. */
+.progress {
+  position: fixed;
+  inset-inline: 0;
+  top: 0;
+  z-index: 60;
+  height: 1px;
+  background: transparent;
+  pointer-events: none;
+}
+
+.progress i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-bright), var(--accent-light));
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  will-change: transform;
+}
+
+/* ── 3 · Crossover ──────────────────────────────────────────────────────── */
+
+/* The claim race: two workers, one stale. Rows enter, then the second worker's
+   retry is struck through and its verdict flips. Driven by data-step on the
+   figure so the sequence is declarative and testable. */
+.race {
+  padding: var(--s-5);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-lg);
+  background: var(--tint-card);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+.race__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  padding-bottom: var(--s-3);
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.race__label {
+  font-size: var(--fs-overline);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.race__rows { display: flex; flex-direction: column; gap: var(--s-2); padding-block: var(--s-4); }
+
+.race__row {
+  display: grid;
+  grid-template-columns: 6.5rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-3);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-sm);
+  background: var(--tint-raise);
+  opacity: 0;
+  transform: translateX(-8px);
+  transition:
+    opacity 520ms var(--ease),
+    transform 520ms var(--ease),
+    border-color 400ms var(--ease),
+    background-color 400ms var(--ease);
+}
+
+.race[data-step='1'] [data-race-row='a'],
+.race[data-step='2'] [data-race-row='a'],
+.race[data-step='2'] [data-race-row='b'],
+.race[data-step='3'] [data-race-row='a'],
+.race[data-step='3'] [data-race-row='b'],
+.race[data-step='3'] [data-race-row='b2'] {
+  opacity: 1;
+  transform: none;
+}
+
+.race[data-step='2'] [data-race-row='b'],
+.race[data-step='3'] [data-race-row='b'] { transition-delay: 140ms; }
+
+.race[data-step='3'] [data-race-row='b2'] { transition-delay: 280ms; }
+
+.race__who { font-size: var(--fs-caption); color: var(--text-secondary); }
+
+.race__what {
+  font-family: var(--font-mono);
+  font-size: var(--fs-caption);
+  color: var(--text-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.race__verdict {
+  font-family: var(--font-mono);
+  font-size: var(--fs-overline);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--success);
+  white-space: nowrap;
+}
+
+/* The stale attempt: struck through, then rejected. This is the page's one
+   "negative" animation and it is the argument, so it is allowed to be the
+   most emphatic thing in the section. */
+.race[data-step='3'] [data-race-row='b2'] .race__what {
+  text-decoration: line-through;
+  text-decoration-color: var(--error);
+  text-decoration-thickness: 1px;
+}
+
+.race[data-step='3'] [data-race-row='b2'] {
+  border-color: color-mix(in srgb, var(--error) 34%, transparent);
+  background: color-mix(in srgb, var(--error) 7%, transparent);
+}
+
+.race[data-step='3'] [data-race-row='b2'] .race__verdict { color: var(--error); }
+
+.race__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--border-soft);
+  font-size: var(--fs-overline);
+  color: var(--error);
+  opacity: 0;
+  transition: opacity 400ms var(--ease) 420ms;
+}
+
+.race[data-step='3'] .race__foot { opacity: 1; }
+
+.race__foot .mono { font-size: var(--fs-caption); }
+.race__foot-note { color: var(--text-secondary); }
+
+/* The harness pipeline: trajectory → review → proposal → three targets. */
+.harness {
+  padding: var(--s-6);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-lg);
+  background: var(--tint-card);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+.harness__stage {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-2);
+}
+
+.harness__node {
+  flex: 1 1 0;
+  padding: var(--s-3) var(--s-2);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-sm);
+  background: var(--tint-raise);
+  font-family: var(--font-mono);
+  font-size: var(--fs-caption);
+  color: var(--text-tertiary);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.harness__node--accent {
+  border-color: var(--border-mid);
+  background: var(--tint-accent);
+  color: var(--text-primary);
+}
+
+/* A travelling pulse along the pipeline: the only looping element in the
+   section, and it stops under reduced motion. */
+.harness__flow {
+  flex: 0 0 var(--s-5);
+  height: 1px;
+  background: var(--border-mid);
+  position: relative;
+  overflow: hidden;
+}
+
+.harness__flow::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, var(--accent-light), transparent);
+  transform: translateX(-100%);
+  /* Paused until the figure is on screen; JS adds .is-live. An infinite
+     animation that runs while off-screen is a compositor wake-up for nothing. */
+  animation: flow 2.8s linear infinite;
+  animation-play-state: paused;
+}
+
+.is-live .harness__flow::after { animation-play-state: running; }
+
+@keyframes flow {
+  to { transform: translateX(100%); }
+}
+
+.harness__fan {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  height: var(--s-5);
+  margin-top: var(--s-2);
+}
+
+.harness__fan i {
+  justify-self: center;
+  width: 1px;
+  height: 100%;
+  background: var(--border-soft);
+}
+
+.harness__targets {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s-2);
+}
+
+.harness__target {
+  padding: var(--s-2);
+  border: 1px dashed var(--border-soft);
+  border-radius: var(--r-sm);
+  font-family: var(--font-mono);
+  font-size: var(--fs-overline);
+  color: var(--text-dim);
+  text-align: center;
+}
+
+.harness__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  margin-top: var(--s-4);
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--border-soft);
+  font-size: var(--fs-overline);
+  color: var(--text-dim);
+}
+
+.harness__foot-ok { color: var(--success); font-size: var(--fs-caption); }
+
+/* ── 4 · Feedback ───────────────────────────────────────────────────────── */
+
+/* Magnetic buttons: the pointer pulls the label a few pixels toward itself.
+   Implemented in JS (transform on the element); this only sets the timing so
+   the release is a glide rather than a snap. */
+[data-magnetic] {
+  transition:
+    background-color var(--dur-normal) var(--ease),
+    box-shadow var(--dur-normal) var(--ease),
+    color var(--dur-normal) var(--ease),
+    transform 220ms var(--ease);
+  will-change: transform;
+}
+
+/* One element, one owner of `transform`. Reveal owns it on [data-reveal];
+   magnetic owns it on [data-magnetic]. The two are never the same element in
+   this page's markup, and this rule keeps that true if it is ever edited: a
+   magnetic element inside a reveal wrapper still animates, because the reveal
+   transform is on the wrapper, not on the button. */
+.js [data-reveal][data-magnetic] { transform: none; }
+
+/* Card lift: 2px, with the hairline brightening. No scale — scaled text
+   re-rasterises and looks soft on non-retina displays. */
+.card:hover {
+  transform: translateY(-2px);
+}
+
+.card {
+  transition:
+    border-color var(--dur-normal) var(--ease),
+    box-shadow var(--dur-normal) var(--ease),
+    background-color var(--dur-normal) var(--ease),
+    transform 260ms var(--ease);
+}
+
+/* The accent rule that runs from one section into the next: a 1px line that
+   draws itself when its section enters. */
+.section--rule::before {
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform 1100ms var(--ease);
+}
+
+.section--rule.is-revealed::before { transform: scaleX(1); }
+
+/* ── Figure notes ───────────────────────────────────────────────────────── */
+
+.figure-note {
+  margin-top: var(--s-4);
+  font-size: var(--fs-caption);
+  line-height: 1.7;
+  color: var(--text-dim);
+  max-width: 46ch;
+}
+
+/* ── Section-specific layout ────────────────────────────────────────────── */
+
+.split--wide { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); }
+
+.card--fail .card__num {
+  margin-bottom: var(--s-4);
+  color: var(--error);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: var(--fs-overline);
+}
+
+.card--fail { border-color: color-mix(in srgb, var(--error) 14%, transparent); }
+.card--fail:hover { border-color: color-mix(in srgb, var(--error) 30%, transparent); }
+
+.hero__lede em {
+  font-style: normal;
+  color: var(--text-primary);
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+
+@media (max-width: 900px) {
+  .episode { grid-template-columns: minmax(0, 1fr); }
+  .harness__stage { flex-wrap: wrap; }
+  .harness__flow { display: none; }
+  /* Three columns cannot fit a phone. The verdict drops under the claim. */
+  .race__row {
+    grid-template-columns: 5.5rem minmax(0, 1fr);
+    row-gap: 2px;
+  }
+  .race__what { white-space: normal; overflow-wrap: anywhere; }
+  .race__verdict { grid-column: 2; justify-self: start; }
+  .race__foot { flex-direction: column; align-items: flex-start; gap: 2px; }
+}
+
+@media (max-width: 640px) {
+  .episode { padding: var(--s-4); }
+  .episode__col { padding: var(--s-4); }
+  .race { padding: var(--s-4); }
+  .harness { padding: var(--s-4); }
+  .harness__targets { grid-template-columns: minmax(0, 1fr); }
+  .harness__fan { display: none; }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CAPABILITIES
+   ───────────────────────────────────────────────────────────────────────────
+   A bento grid: the cards that need a picture (index, ACP) are wide, the rest
+   are uniform. Each card owns one small figure that *is* the
+   claim — a skeleton, a QR, a gauge, a frame — because a capability is easier to
+   believe when you can see the shape of it.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+.caps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s-4);
+}
+
+.cap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  padding: var(--s-6);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-lg);
+  background: var(--tint-card);
+  overflow: hidden;
+  transition:
+    border-color var(--dur-normal) var(--ease),
+    box-shadow var(--dur-normal) var(--ease),
+    transform 260ms var(--ease);
+}
+
+.cap:hover {
+  border-color: var(--border-mid);
+  box-shadow: var(--shadow-low);
+  transform: translateY(-2px);
+}
+
+/* A hairline that draws across the card's top edge on hover: the same
+   connective gesture as the section rules, repeated at component scale. */
+.cap::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent-light), transparent);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform 620ms var(--ease);
+}
+
+.cap:hover::before { transform: scaleX(1); }
+
+.cap--wide {
+  grid-column: span 2;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--s-6);
+}
+
+.cap__body { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: var(--s-3); }
+
+.cap__n {
+  font-size: var(--fs-overline);
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+}
+
+.cap p {
+  font-size: var(--fs-sm);
+  line-height: var(--lh-sm);
+  color: var(--text-muted);
+}
+
+.cap p a {
+  color: var(--text-secondary);
+  text-decoration: underline;
+  text-decoration-color: var(--border-mid);
+}
+
+.cap p a:hover { color: var(--text-primary); }
+
+.cap__meta {
+  margin-top: auto;
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--border-soft);
+  font-size: var(--fs-overline);
+  letter-spacing: 0.04em;
+  color: var(--text-dim);
+}
+
+.cap__figure { flex: 0 0 46%; min-width: 0; }
+
+/* ── index skeleton ─────────────────────────────────────────────────────── */
+
+.skeleton {
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-md);
+  background: var(--tint-well);
+  overflow: hidden;
+}
+
+.skeleton__head {
+  padding: var(--s-2) var(--s-3);
+  border-bottom: 1px solid var(--border-soft);
+  font-size: var(--fs-overline);
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.skeleton__body {
+  margin: 0;
+  padding: var(--s-3);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1.75;
+  color: var(--text-muted);
+  overflow-x: auto;
+}
+
+.sk-k { color: var(--accent-light); }
+.sk-t { color: var(--text-primary); }
+.sk-f { color: var(--code-string); }
+.sk-y { color: var(--code-number); }
+
+/* ── RLM tree ───────────────────────────────────────────────────────────── */
+
+.cap__tree { margin-top: var(--s-2); }
+
+.cap__node {
+  padding: var(--s-2);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-sm);
+  background: var(--tint-raise);
+  font-family: var(--font-mono);
+  font-size: var(--fs-caption);
+  color: var(--text-tertiary);
+  text-align: center;
+}
+
+.cap__node--root { border-color: var(--border-mid); color: var(--text-primary); }
+
+.cap__kids {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  height: var(--s-4);
+}
+
+.cap__kids i {
+  justify-self: center;
+  width: 1px;
+  height: 100%;
+  background: var(--border-soft);
+}
+
+.cap__leaves {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s-2);
+}
+
+.cap__leaves span {
+  padding: 5px;
+  border: 1px dashed var(--border-soft);
+  border-radius: var(--r-sm);
+  font-family: var(--font-mono);
+  font-size: var(--fs-overline);
+  color: var(--text-dim);
+  text-align: center;
+}
+
+/* ── QR ─────────────────────────────────────────────────────────────────── */
+
+.cap__qr {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  margin-top: var(--s-2);
+}
+
+/* The code itself is drawn by JS into a grid of divs, so it scales with the
+   card and needs no image asset. 21x21 is a version-1 QR. */
+.qr {
+  display: grid;
+  grid-template-columns: repeat(21, 1fr);
+  gap: 1px;
+  width: 84px;
+  height: 84px;
+  padding: 5px;
+  border-radius: var(--r-sm);
+  background: var(--n-00);
+  flex-shrink: 0;
+}
+
+.qr i { background: transparent; }
+.qr i.on { background: var(--n-90); }
+
+.cap__qr-note { font-size: var(--fs-overline); color: var(--text-dim); }
+
+/* ── cache gauge ────────────────────────────────────────────────────────── */
+
+.cap__gauge { margin-top: var(--s-2); display: flex; flex-direction: column; gap: var(--s-2); }
+
+.gauge {
+  height: 6px;
+  border-radius: var(--r-pill);
+  background: var(--tint-raise-2);
+  overflow: hidden;
+}
+
+.gauge i {
+  display: block;
+  height: 100%;
+  border-radius: var(--r-pill);
+  background: linear-gradient(90deg, var(--accent-bright), var(--success));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 1400ms var(--ease);
+}
+
+.gauge__label { font-size: var(--fs-caption); color: var(--text-dim); }
+
+/* ── unlimited context bar ──────────────────────────────────────────────── */
+
+.cap__bar {
+  position: relative;
+  margin-top: var(--s-2);
+  height: 6px;
+  border-radius: var(--r-pill);
+  background: var(--tint-raise-2);
+  overflow: hidden;
+}
+
+.cap__bar-fill {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--r-pill);
+  background: repeating-linear-gradient(
+    90deg,
+    var(--accent-bright) 0 6px,
+    transparent 6px 10px
+  );
+  opacity: 0.85;
+}
+
+/* ── ACP rows ───────────────────────────────────────────────────────────── */
+
+.acp {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  padding: var(--s-4);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-md);
+  background: var(--tint-well-soft);
+}
+
+.acp__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  padding: var(--s-2) var(--s-3);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-sm);
+  background: var(--tint-raise);
+}
+
+.acp__row--yazi { border-color: var(--border-mid); background: var(--tint-accent); }
+
+.acp__who { font-family: var(--font-mono); font-size: var(--fs-caption); color: var(--text-secondary); }
+.acp__what { font-size: var(--fs-overline); color: var(--text-dim); }
+
+.acp__swap { display: flex; justify-content: center; color: var(--text-dim); }
+
+.acp__swap svg {
+  animation: acp-swap 3.4s var(--ease) infinite;
+  animation-play-state: paused;
+}
+
+.is-live .acp__swap svg { animation-play-state: running; }
+
+@keyframes acp-swap {
+  0%, 60%, 100% { transform: translateY(0); }
+  70%           { transform: translateY(3px); }
+  80%           { transform: translateY(0); }
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+
+@media (max-width: 1200px) {
+  .caps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cap--wide { grid-column: span 2; }
+}
+
+@media (max-width: 900px) {
+  .cap--wide { flex-direction: column; align-items: stretch; }
+  .cap__figure { flex: 1 1 auto; }
+}
+
+@media (max-width: 640px) {
+  .caps { grid-template-columns: minmax(0, 1fr); }
+  .cap--wide { grid-column: span 1; }
+  .cap { padding: var(--s-5); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .acp__swap svg,
+  .episode__arrow svg,
+  .harness__flow::after { animation: none; }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PAGE-LEVEL COMPONENTS
+   ───────────────────────────────────────────────────────────────────────────
+   The site is four pages, not one scroll. These are the pieces that only exist
+   because of that: a page head, a three-item mechanism index, and a next-page
+   block that ends every page.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* ── Page head ──────────────────────────────────────────────────────────── */
+
+.pagehead {
+  position: relative;
+  z-index: 1;
+  padding-top: calc(var(--nav-h) + var(--s-9));
+  padding-bottom: var(--s-8);
+}
+
+.pagehead__title {
+  font-family: var(--font-heading);
+  font-size: clamp(2.5rem, 1.3rem + 4vw, 4.25rem);
+  font-weight: 300;
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+}
+
+.pagehead__lede {
+  margin-top: var(--s-5);
+  max-width: 58ch;
+  font-size: var(--fs-body);
+  color: var(--text-tertiary);
+}
+
+.pagehead__lede code {
+  padding: 0.1em 0.4em;
+  border-radius: var(--r-sm);
+  background: var(--tint-raise-2);
+  color: var(--text-secondary);
+  font-size: 0.9em;
+}
+
+/* ── Mechanism index (home) ─────────────────────────────────────────────── */
+
+.mech {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s-4);
+}
+
+/* Whole card is the link: a reader should not have to aim at a word. */
+.mech__item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  padding: var(--s-6);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-lg);
+  background: var(--tint-card);
+  transition:
+    border-color var(--dur-normal) var(--ease),
+    box-shadow var(--dur-normal) var(--ease),
+    transform 260ms var(--ease);
+}
+
+.mech__item:hover {
+  border-color: var(--border-mid);
+  box-shadow: var(--shadow-low);
+  transform: translateY(-2px);
+}
+
+.mech__item::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent-light), transparent);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform 620ms var(--ease);
+}
+
+.mech__item:hover::before { transform: scaleX(1); }
+
+.mech__n {
+  font-size: var(--fs-overline);
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+}
+
+.mech__item p {
+  font-size: var(--fs-sm);
+  line-height: var(--lh-sm);
+  color: var(--text-muted);
+}
+
+.mech__more {
+  margin-top: auto;
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--border-soft);
+  font-size: var(--fs-overline);
+  letter-spacing: 0.04em;
+  color: var(--text-dim);
+  transition: color var(--dur-normal) var(--ease);
+}
+
+.mech__item:hover .mech__more { color: var(--accent-light); }
+
+/* ── Next-page block ────────────────────────────────────────────────────── */
+
+.next {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: var(--s-8);
+  align-items: start;
+  padding-top: var(--s-6);
+  border-top: 1px solid var(--border-soft);
+}
+
+.next__links { display: flex; flex-direction: column; gap: var(--s-2); }
+
+.next__link {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--s-4) var(--s-5);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-md);
+  background: var(--tint-card-faint);
+  transition:
+    border-color var(--dur-normal) var(--ease),
+    background-color var(--dur-normal) var(--ease),
+    transform 220ms var(--ease);
+}
+
+.next__link:hover {
+  border-color: var(--border-mid);
+  background: var(--tint-card);
+  transform: translateX(3px);
+}
+
+.next__label {
+  font-family: var(--font-heading);
+  font-size: var(--fs-h3);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+
+.next__desc {
+  font-size: var(--fs-caption);
+  line-height: 1.6;
+  color: var(--text-dim);
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+
+@media (max-width: 900px) {
+  .mech { grid-template-columns: minmax(0, 1fr); }
+  .next { grid-template-columns: minmax(0, 1fr); gap: var(--s-5); }
+  .pagehead { padding-top: calc(var(--nav-h) + var(--s-8)); }
+}
+
+@media (max-width: 640px) {
+  .mech__item { padding: var(--s-5); }
+  .pagehead { padding-bottom: var(--s-6); }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ONE PAGE
+   ───────────────────────────────────────────────────────────────────────────
+   The site is a single landing page plus install. These are the pieces that
+   make one page read as a narrative rather than a stack of sections: a bigger
+   feature heading, alternating text/figure rhythm, and a closing CTA that is
+   the loudest thing below the hero.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* ── Feature splits ─────────────────────────────────────────────────────── */
+
+/* Each mechanism gets real air: 96px between them, so the page has three
+   beats instead of one long scroll. */
+.split--feature {
+  align-items: center;
+  padding-block: var(--s-8);
+}
+
+.split--feature + .split--feature {
+  border-top: 1px solid var(--border-soft);
+}
+
+/* Alternate which side the figure sits on, so the eye moves. */
+.split--flip .split__text { order: 2; }
+.split--flip .split__figure { order: 1; }
+
+.h3--lg {
+  font-size: clamp(1.5rem, 1.1rem + 1.4vw, 2rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin-top: var(--s-3);
+}
+
+.split--feature .lede { margin-top: var(--s-4); }
+
+/* ── The episode figure, two columns side by side ───────────────────────── */
+
+.episode {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--s-3);
+  padding: var(--s-4);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-lg);
+  background: var(--tint-card);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+.episode__col {
+  padding: var(--s-4);
+  border-radius: var(--r-md);
+  border: 1px solid var(--border-soft);
+  background: var(--tint-raise);
+}
+
+.episode__col--out {
+  border-style: dashed;
+  background: transparent;
+}
+
+.episode__head {
+  margin-bottom: var(--s-3);
+  font-size: var(--fs-overline);
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.episode__list { display: flex; flex-direction: column; gap: var(--s-2); }
+
+.episode__list li {
+  position: relative;
+  padding-left: var(--s-4);
+  font-size: var(--fs-caption);
+  color: var(--text-secondary);
+}
+
+.episode__list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.72em;
+  width: 6px;
+  height: 1px;
+  background: var(--accent-bright);
+}
+
+.episode__list--muted li { color: var(--text-dim); }
+.episode__list--muted li::before { width: 7px; background: var(--border-mid); }
+
+/* ── Closing CTA ────────────────────────────────────────────────────────── */
+
+.cta {
+  max-width: 720px;
+  margin-inline: auto;
+  text-align: center;
+}
+
+.cta__title {
+  font-family: var(--font-heading);
+  font-size: clamp(2rem, 1.3rem + 2.6vw, 3.25rem);
+  font-weight: 300;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+  margin-bottom: var(--s-6);
+}
+
+.cta__note {
+  font-size: var(--fs-body);
+  color: var(--text-secondary);
+}
+
+.cta__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--s-3);
+  margin-top: var(--s-5);
+}
+
+/* The hero lede gets a second, louder sentence. */
+.hero__lede--strong {
+  margin-top: var(--s-5);
+  color: var(--text-primary);
+  font-size: var(--fs-h3);
+  line-height: var(--lh-h3);
+}
+
+.hero__lede--detail { margin-top: var(--s-4); }
+
+.features__subhead {
+  margin-top: var(--s-8);
+  margin-bottom: var(--s-4);
+}
+
+.caps--workflows .cap {
+  background: var(--surface-elevated);
+  border-color: var(--border-mid);
+}
+
+.caps--workflows .cap__figure { flex: 0 1 auto; }
+
+@media (min-width: 901px) {
+  .caps--workflows { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 900px) {
+  .caps--workflows { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+
+@media (max-width: 1200px) {
+  /* .split--feature is more specific than .split, so the collapse has to name
+     it or the two-column grid survives into mobile. */
+  .split--feature { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 900px) {
+  .split--flip .split__text { order: 0; }
+  .split--flip .split__figure { order: 0; }
+  .split--feature { padding-block: var(--s-6); }
+  .episode { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 640px) {
+  .split--feature { padding-block: var(--s-5); }
+  .episode { padding: var(--s-3); }
+  .episode__col { padding: var(--s-3); }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CARD FIGURES
+   ───────────────────────────────────────────────────────────────────────────
+   Every card in the feature grid carries a small figure, so a row of cards is
+   the same height because each one has something in it, not because the grid
+   stretched the short ones. The figures share one vocabulary: a mono label, a
+   hairline, and rows of state.
+
+   They are decorative (aria-hidden): each one restates the sentence above it,
+   and a screen reader has already read that sentence.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+.fig {
+  margin: var(--s-5) 0 0;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-md);
+  background: var(--tint-well-faint);
+  overflow: hidden;
+}
+
+.fig__head {
+  padding: var(--s-2) var(--s-3);
+  border-bottom: 1px solid var(--border-soft);
+  font-size: var(--fs-overline);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.fig__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  padding: var(--s-3);
+}
+
+.fig__row {
+  display: grid;
+  grid-template-columns: 7px auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--s-2);
+  font-size: var(--fs-caption);
+}
+
+.fig__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-dim);
+}
+
+.fig__dot--ok { background: var(--success); }
+.fig__dot--bad { background: var(--error); }
+.fig__dot--live {
+  background: var(--accent-light);
+  box-shadow: 0 0 0 3px var(--tint-accent-soft);
+}
+
+.fig__k { color: var(--text-muted); white-space: nowrap; }
+
+.fig__v {
+  color: var(--text-dim);
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The gap between a closed terminal and a restored session. */
+.fig__gap {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding-left: 15px;
+  font-size: var(--fs-overline);
+  color: var(--text-dim);
+}
+
+.fig__gap::before,
+.fig__gap::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-soft);
+}
+
+.fig__gap::before { flex: 0 0 1px; height: 14px; }
+
+/* Two columns: what stays, what moves. */
+.fig__split {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s-2);
+  padding: var(--s-3);
+}
+
+.fig__col {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: var(--s-3);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-sm);
+  font-size: var(--fs-caption);
+  color: var(--text-muted);
+}
+
+.fig__col--moves {
+  border-style: dashed;
+  background: transparent;
+}
+
+.fig__colhead {
+  margin-bottom: 3px;
+  font-size: var(--fs-overline);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+/* A one-line code sample. */
+.fig--code .fig__code {
+  margin: 0;
+  padding: var(--s-3);
+  font-family: var(--font-mono);
+  font-size: var(--fs-caption);
+  line-height: 1.7;
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* A row of capability tags. */
+.fig__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-1);
+  padding: var(--s-3);
+}
+
+.fig__tags span {
+  padding: 2px var(--s-2);
+  border-radius: var(--r-pill);
+  border: 1px solid var(--border-soft);
+  font-family: var(--font-mono);
+  font-size: var(--fs-overline);
+  color: var(--text-muted);
+}
+
+/* The cards are equal height because each has a figure, so the figure sits at
+   the bottom and the text keeps its top alignment. */
+.caps--workflows .cap { display: flex; flex-direction: column; }
+.caps--workflows .cap > p { flex: 0 0 auto; }
+.caps--workflows .cap > .fig,
+.caps--workflows .cap > .cap__figure { margin-top: auto; }
+
+
+/* The pairing card: the code and what scanning it gets you, side by side, so
+   the card is filled rather than a small square on a large empty ground. */
+.fig--qr .fig__qrbody {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  padding: var(--s-4);
+}
+
+.fig--qr .qr {
+  width: 104px;
+  height: 104px;
+  flex-shrink: 0;
+}
+
+.fig__qrtext {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  font-size: var(--fs-caption);
+  line-height: 1.6;
+  color: var(--text-muted);
+  min-width: 0;
+}
+
+.fig__qrtext .mono {
+  font-size: var(--fs-overline);
+  letter-spacing: 0.04em;
+  color: var(--accent-light);
+}
