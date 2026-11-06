@@ -50,6 +50,15 @@ jobs:
       - name: Check the custom domain is present
         run: test -f CNAME && test "$(cat CNAME)" = "yazi.krea.to"
 
+      # install.sh is hand-written, not generated, and served as-is at
+      # https://yazi.krea.to/install.sh for `curl | bash`. A syntax error there
+      # breaks every new install, so it is checked before anything is uploaded.
+      - name: Lint the installer
+        run: |
+          test -f install.sh || { echo "::error::install.sh is missing"; exit 1; }
+          bash -n install.sh
+          shellcheck install.sh
+
       - uses: actions/configure-pages@v5
 
       - uses: actions/upload-pages-artifact@v3

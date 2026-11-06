@@ -9,6 +9,7 @@ Published at **https://yazi.krea.to**.
 
 ```
 index.html install.html   generated pages
+install.sh                the curl | bash installer, hand-written, linted in CI
 assets/css/tokens.css     design tokens, traced to design/dna.json
 assets/css/site.css       layout, components, motion
 assets/css/tui.css        the terminal
@@ -33,6 +34,10 @@ python3 -m http.server 8000   # preview at http://localhost:8000
 
 Editing a page means editing `tools/pages_*.py`, not the HTML. The deploy
 workflow fails if the committed HTML does not match a fresh build.
+
+`install.sh` is the exception: it is not generated. It is served as-is at
+https://yazi.krea.to/install.sh, and the workflow runs `bash -n` and
+`shellcheck` on it before deploying.
 
 ## Verification
 

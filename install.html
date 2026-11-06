@@ -6,7 +6,7 @@
 <meta name="color-scheme" content="dark" />
 <meta name="theme-color" content="#151517" />
 <title>Install — Yazi</title>
-<meta name="description" content="Install Yazi on Linux or macOS, connect a provider, and run your first task." />
+<meta name="description" content="Install Yazi on Linux or macOS with one command, connect a provider, and run your first task." />
 <link rel="icon" href="assets/img/jet-logo.svg" type="image/svg+xml" />
 <link rel="preload" href="assets/fonts/montserrat-light.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="preload" href="assets/fonts/montserrat-medium.woff2" as="font" type="font/woff2" crossorigin />
@@ -60,7 +60,7 @@
         <span class="line">Install and</span>
         <span class="line">run Yazi.</span>
       </h1>
-      <p class="pagehead__lede">Two executables, one directory on your PATH. Pick a platform, connect a provider, run a task.</p>
+      <p class="pagehead__lede">One command to install. Connect a provider, run a task.</p>
       <nav class="page-jumps" aria-label="On this page">
         <a href="#steps">Quickstart</a>
         <a href="#from-source">Build from source</a>
@@ -75,9 +75,34 @@
 
         <li class="step" id="platform">
           <div class="step__body">
-            <h2 class="step__title">Install for your platform</h2>
+            <h2 class="step__title">Install with one command</h2>
             <p class="step__text">
-              Linux and macOS, on amd64 or arm64. Grab an archive from
+              The installer clones the Yazi repository, builds <code>yazi</code>
+              and <code>yazi-runtime</code>, and links both into
+              <code>~/.local/bin</code>. It needs git and curl, not Go: if Go is
+              missing or too old, it fetches a toolchain just for the build.
+              Run it again to update.
+            </p>
+            <div class="snippet" data-copy-host>
+              <code class="snippet__code">curl -fsSL https://yazi.krea.to/install.sh | bash</code>
+              <button class="snippet__copy" type="button" data-copy aria-label="Copy install command" hidden>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M10.5 3.5v-.5a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1H4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+                <span class="snippet__copy-text">Copy</span>
+              </button>
+            </div>
+            <p class="snippet__feedback sr-only" role="status" data-copy-feedback></p>
+            <p class="step__text step__text--dim">
+              To read it first:
+              <code>curl -fsSL https://yazi.krea.to/install.sh -o install.sh &amp;&amp; less install.sh &amp;&amp; bash install.sh</code>
+            </p>
+            <p class="step__text step__text--dim">
+              Options go after <code>bash -s --</code>: <code>--ref</code> pins a
+              branch, tag or commit, <code>--dir</code> and <code>--bin-dir</code>
+              move the install, <code>--uninstall</code> removes it.
+              <code>--help</code> lists the rest.
+            </p>
+            <p class="step__text step__text--dim">
+              Prefer a prebuilt binary? Grab an archive from
               <a href="https://src.krea.to/kreato/yazi/releases">project releases</a>
               and put <code>yazi</code> and <code>yazi-runtime</code> in the same
               directory on your <code>PATH</code>. Both are needed: the first is
@@ -156,7 +181,7 @@
             From the root of a local checkout of the
             <a href="https://src.krea.to/kreato/yazi">Yazi repository</a>.
             Keep the two outputs together and add their directory to your
-            <code>PATH</code>.
+            <code>PATH</code>. The installer does exactly this.
           </p>
           <div class="snippet" data-copy-host>
               <code class="snippet__code">go build -trimpath -o yazi ./cmd/yazi

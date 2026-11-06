@@ -7,5 +7,5 @@ TITLES = {
 
 DESCRIPTIONS = {
     "index": "Yazi is a durable coding-agent runtime. It resumes long-running work from saved checkpoints and keeps the full transcript searchable.",
-    "install": "Install Yazi on Linux or macOS, connect a provider, and run your first task.",
+    "install": "Install Yazi on Linux or macOS with one command, connect a provider, and run your first task.",
 }

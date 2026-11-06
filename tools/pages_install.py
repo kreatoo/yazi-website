@@ -14,6 +14,11 @@ def snippet(command: str, label: str) -> str:
 
 UNIX_BUILD = """go build -trimpath -o yazi ./cmd/yazi
 go build -trimpath -o yazi-runtime ./cmd/yazi-runtime"""
+INSTALL_CMD = "curl -fsSL https://yazi.krea.to/install.sh | bash"
+INSTALL_READ_FIRST = (
+    "curl -fsSL https://yazi.krea.to/install.sh -o install.sh"
+    " && less install.sh && bash install.sh"
+)
 FIRST_TASK = 'yazi -p "Reply with the words Yazi is ready."'
 
 INSTALL = rf"""
@@ -23,7 +28,7 @@ INSTALL = rf"""
         <span class="line">Install and</span>
         <span class="line">run Yazi.</span>
       </h1>
-      <p class="pagehead__lede">Two executables, one directory on your PATH. Pick a platform, connect a provider, run a task.</p>
+      <p class="pagehead__lede">One command to install. Connect a provider, run a task.</p>
       <nav class="page-jumps" aria-label="On this page">
         <a href="#steps">Quickstart</a>
         <a href="#from-source">Build from source</a>
@@ -38,9 +43,27 @@ INSTALL = rf"""
 
         <li class="step" id="platform">
           <div class="step__body">
-            <h2 class="step__title">Install for your platform</h2>
+            <h2 class="step__title">Install with one command</h2>
             <p class="step__text">
-              Linux and macOS, on amd64 or arm64. Grab an archive from
+              The installer clones the Yazi repository, builds <code>yazi</code>
+              and <code>yazi-runtime</code>, and links both into
+              <code>~/.local/bin</code>. It needs git and curl, not Go: if Go is
+              missing or too old, it fetches a toolchain just for the build.
+              Run it again to update.
+            </p>
+            {snippet(INSTALL_CMD, "Copy install command")}
+            <p class="step__text step__text--dim">
+              To read it first:
+              <code>{escape(INSTALL_READ_FIRST)}</code>
+            </p>
+            <p class="step__text step__text--dim">
+              Options go after <code>bash -s --</code>: <code>--ref</code> pins a
+              branch, tag or commit, <code>--dir</code> and <code>--bin-dir</code>
+              move the install, <code>--uninstall</code> removes it.
+              <code>--help</code> lists the rest.
+            </p>
+            <p class="step__text step__text--dim">
+              Prefer a prebuilt binary? Grab an archive from
               <a href="https://src.krea.to/kreato/yazi/releases">project releases</a>
               and put <code>yazi</code> and <code>yazi-runtime</code> in the same
               directory on your <code>PATH</code>. Both are needed: the first is
@@ -105,7 +128,7 @@ INSTALL = rf"""
             From the root of a local checkout of the
             <a href="https://src.krea.to/kreato/yazi">Yazi repository</a>.
             Keep the two outputs together and add their directory to your
-            <code>PATH</code>.
+            <code>PATH</code>. The installer does exactly this.
           </p>
           {snippet(UNIX_BUILD, "Copy build commands")}
           <p class="step__text step__text--dim">

@@ -143,7 +143,8 @@ function check(name, pass, detail) {
     }));
     check('copy button labels and copies', copied.label === 'Copied' && copied.cls.includes('is-copied'),
       copied.label);
-    check('clipboard holds the command', copied.clip === 'yazi', copied.clip.slice(0, 30));
+    check('clipboard holds the command',
+      copied.clip === 'curl -fsSL https://yazi.krea.to/install.sh | bash', copied.clip.slice(0, 60));
     await page.waitForTimeout(1800);
     const restored = await page.evaluate(() => document.querySelector('.snippet__copy-text').textContent);
     check('copy label restores', restored === 'Copy', restored);
