@@ -1,4 +1,6 @@
-INDEX = r"""
+from pages_install import INSTALL_CMD, snippet
+
+INDEX = rf"""
   <!-- ══ HERO ══════════════════════════════════════════════════════════ -->
   <section class="hero" id="top">
     <div class="wrap">
@@ -10,11 +12,13 @@ INDEX = r"""
             <span class="line">starts.</span>
           </h1>
           <p class="hero__lede hero__lede--strong">
-            A coding-agent runtime that resumes long-running work from saved checkpoints.
+            A coding agent for jobs that take all afternoon.
           </p>
           <p class="hero__lede hero__lede--detail">
-            Yazi saves task progress in SQLite and keeps the full transcript searchable.
-            For a claimed task, it rebuilds the model's context from the latest checkpoint.
+            Close the terminal and the work keeps running; attach again whenever
+            you like. On a tracked task, when the context fills, Yazi starts
+            fresh from the task's saved checkpoint instead of a summary of the
+            chat.
           </p>
           <div class="hero__cta" data-reveal>
             <a class="btn btn--primary" href="install.html" data-magnetic>
@@ -48,15 +52,15 @@ INDEX = r"""
               <div class="tui__log" data-terminal-out aria-label="Example Yazi session resuming after a disconnect">
                 <p class="tui__user">Run the parity tests</p>
                 <p class="tui__assistant">Preparing the test run.</p>
-                <p class="tui__event">Checkpoint saved · rev 8</p>
+                <p class="tui__event">Checkpoint saved</p>
                 <p class="tui__event is-disconnected">Terminal disconnected</p>
                 <p class="tui__event">$ yazi --continue</p>
-                <p class="tui__event is-resumed">Session restored · rev 8</p>
+                <p class="tui__event is-resumed">Session restored</p>
                 <div class="tui__tool is-done">
                   <div class="tui__tool-head">shell · <span class="tui__tool-state">done</span></div>
                   <div class="tui__tool-cmd">$ go test ./internal/tui2/parity</div>
                   <div class="tui__tool-out">ok  internal/tui2/parity    0.12s</div>
-                  <div class="tui__tool-time">Took 0.0s</div>
+                  <div class="tui__tool-time">Took 1.2s</div>
                 </div>
                 <p class="tui__assistant">All four scenarios passed.</p>
               </div>
@@ -83,57 +87,23 @@ INDEX = r"""
     <div class="wrap">
       <header class="section__head" data-reveal>
         <h2 class="h2">Three things keep a long job alive.</h2>
+        <p class="lede">
+          Long agent runs go wrong the same way: the context fills, the chat
+          gets summarised, and the summary drifts from what actually happened.
+          On a tracked task, Yazi keeps the record outside the chat.
+        </p>
       </header>
 
       <!-- 01 -->
-      <div class="split split--wide split--feature" id="revisioned-state">
-        <div class="split__text" data-reveal>
-          <h3 class="h3 h3--lg">Work has an owner, and a revision.</h3>
-          <p class="lede">
-            Specs, tasks and claims live in SQLite with a revision that only
-            goes up. Every write names the revision it expects, so a slow worker
-            gets a conflict instead of overwriting newer work.
-          </p>
-        </div>
-        <div class="split__figure" data-reveal>
-          <figure class="race" data-race aria-label="Two workers attempt the same task checkpoint. The second worker's retry is rejected because its expected revision is stale.">
-            <div class="race__head">
-              <span class="mono race__label">task checkpoint</span>
-              <span class="pill pill--mono">rev <b data-race-rev>7</b></span>
-            </div>
-            <div class="race__rows">
-              <div class="race__row" data-race-row="a">
-                <span class="race__who mono">worker A</span>
-                <span class="race__what">claim gen 3 · rev 7</span>
-                <span class="race__verdict" data-race-verdict>accepted</span>
-              </div>
-              <div class="race__row" data-race-row="b">
-                <span class="race__who mono">worker B</span>
-                <span class="race__what">claim gen 3 · rev 7</span>
-                <span class="race__verdict" data-race-verdict>accepted</span>
-              </div>
-              <div class="race__row race__row--stale" data-race-row="b2">
-                <span class="race__who mono">worker B</span>
-                <span class="race__what">claim gen 3 · rev 7</span>
-                <span class="race__verdict" data-race-verdict>rejected</span>
-              </div>
-            </div>
-            <div class="race__foot">
-              <span class="mono">expected_revision 7 ≠ current 8</span>
-              <span class="mono race__foot-note">reload and stop</span>
-            </div>
-          </figure>
-        </div>
-      </div>
-
-      <!-- 02 -->
-      <div class="split split--wide split--feature split--flip" id="bounded-episodes">
+      <div class="split split--wide split--feature" id="bounded-episodes">
         <div class="split__text" data-reveal>
           <h3 class="h3 h3--lg">A fresh context that doesn't pretend.</h3>
           <p class="lede">
-            When a task is claimed, Yazi builds the model's context from the
-            database: the objective, the constraints you actually gave, the
-            checkpoint and the evidence.
+            A tracked task is one from a spec you attach with <code>/spec</code>.
+            For it, Yazi rebuilds the model's context from the record: the
+            objective, your constraints word for word, the latest checkpoint and
+            the evidence it cites. Earlier episodes and summaries are left out,
+            because that's where long runs drift.
           </p>
         </div>
         <div class="split__figure" data-reveal>
@@ -160,20 +130,63 @@ INDEX = r"""
         </div>
       </div>
 
+      <!-- 02 -->
+      <div class="split split--wide split--feature split--flip" id="revisioned-state">
+        <div class="split__text" data-reveal>
+          <h3 class="h3 h3--lg">Work has an owner, and a revision.</h3>
+          <p class="lede">
+            Each task is written down with its owner and a revision number that
+            only goes up. Every save says which revision it started from, so a
+            worker holding stale information is refused instead of overwriting
+            newer work.
+          </p>
+        </div>
+        <div class="split__figure" data-reveal>
+          <figure class="race" data-race aria-label="Worker A saves the task checkpoint at revision 7 and it becomes revision 8. Worker B, still holding revision 7, tries to save and is rejected.">
+            <div class="race__head">
+              <span class="mono race__label">task checkpoint</span>
+              <span class="pill pill--mono">rev <b data-race-rev>7</b></span>
+            </div>
+            <div class="race__rows">
+              <div class="race__row" data-race-row="a">
+                <span class="race__who mono">worker A</span>
+                <span class="race__what">saves, expects rev 7</span>
+                <span class="race__verdict" data-race-verdict>accepted</span>
+              </div>
+              <div class="race__row" data-race-row="b">
+                <span class="race__who mono">worker B</span>
+                <span class="race__what">still holding rev 7</span>
+                <span class="race__verdict" data-race-verdict>stale</span>
+              </div>
+              <div class="race__row race__row--stale" data-race-row="b2">
+                <span class="race__who mono">worker B</span>
+                <span class="race__what">saves, expects rev 7</span>
+                <span class="race__verdict" data-race-verdict>rejected</span>
+              </div>
+            </div>
+            <div class="race__foot">
+              <span class="mono">expected 7 ≠ current 8</span>
+              <span class="mono race__foot-note">B reloads</span>
+            </div>
+          </figure>
+        </div>
+      </div>
+
       <!-- 03 -->
       <div class="split split--wide split--feature" id="continual-harness">
         <div class="split__text" data-reveal>
           <h3 class="h3 h3--lg">It writes down what it learned.</h3>
           <p class="lede">
-            On an interval, or at compaction, Yazi reviews the trajectory and
-            edits its own operating knowledge: memories, skills, prompt
-            templates. Every edit is revisioned and can be rolled back.
+            Run <code>/refine</code> and Yazi reviews the session, then proposes
+            small edits to its own memories, prompt notes, skills and subagent
+            specs. <code>/refine apply</code> lands them; every edit is
+            revisioned, and <code>/refine undo</code> rolls back the last set.
           </p>
         </div>
         <div class="split__figure" data-reveal>
-          <figure class="harness" aria-label="A trajectory is reviewed, producing a bounded proposal that edits memories, skills and prompt templates, with rollback available.">
+          <figure class="harness" aria-label="A session is reviewed, producing a proposal that edits memories, skills and prompt notes, with rollback available.">
             <div class="harness__stage">
-              <span class="harness__node">trajectory</span>
+              <span class="harness__node">session</span>
               <span class="harness__flow" aria-hidden="true"></span>
               <span class="harness__node harness__node--accent">review</span>
               <span class="harness__flow" aria-hidden="true"></span>
@@ -183,7 +196,7 @@ INDEX = r"""
             <div class="harness__targets">
               <span class="harness__target">memories</span>
               <span class="harness__target">skills</span>
-              <span class="harness__target">prompt templates</span>
+              <span class="harness__target">prompt notes</span>
             </div>
             <div class="harness__foot">
               <span class="mono harness__foot-ok">changeset → rollback</span>
@@ -205,9 +218,9 @@ INDEX = r"""
         <article class="cap" data-reveal id="history">
           <h3 class="h3">Resume a saved task</h3>
           <p>
-            Return to a saved session with <code>yazi --continue</code>. The full
-            transcript stays searchable, and a claimed task carries its own
-            checkpoint into the model's next episode.
+            Return to a session with <code>yazi --continue</code>; the full
+            transcript stays searchable. A tracked task also brings its
+            checkpoint, so the next round starts from what's recorded.
           </p>
           <figure class="fig" aria-hidden="true">
             <div class="fig__head mono">session 7c41</div>
@@ -312,10 +325,12 @@ INDEX = r"""
         <article class="cap" data-reveal id="cache">
           <h4 class="h3">Built to hit the cache</h4>
           <p>
-            Yazi appends to context files so edits preserve the cached prefix.
-            A loopback test measured a <b>98.24%</b> warm cache rate under churn.
+            When a file like <code>AGENTS.md</code> changes, Yazi appends a note
+            instead of rewriting the prompt, so the provider's cached prefix
+            survives. In a churn benchmark, this change took Yazi's warm cache
+            rate from 11% to <b>98%</b>.
           </p>
-          <p class="cap__meta">Loopback provider · 3 trials · 10 turns</p>
+          <p class="cap__meta">Loopback provider · 3 trials · 10 turns each</p>
           <div class="cap__gauge" aria-hidden="true">
             <div class="gauge" data-gauge><i></i></div>
             <span class="mono gauge__label">warm cache rate</span>
@@ -323,11 +338,11 @@ INDEX = r"""
         </article>
 
         <article class="cap" data-reveal id="rlm">
-          <h4 class="h3">Children with their own context</h4>
+          <h4 class="h3">Subagents with their own context</h4>
           <p>
-            The model spawns children that get their own context, Python
-            runtime and model settings. They run at the same time and survive
-            the parent compacting.
+            The model spawns subagents, each with its own context, Python
+            runtime and model settings. They run in parallel and survive the
+            parent compacting.
           </p>
           <div class="cap__tree" aria-hidden="true">
             <div class="cap__node cap__node--root">parent</div>
@@ -418,9 +433,9 @@ INDEX = r"""
         <article class="cap" data-reveal id="nix">
           <h4 class="h3">Nix as a tool source</h4>
           <p>
-            The agent runs <code>nix shell nixpkgs#&lt;package&gt;</code> instead
-            of installing with npm, pip, brew or apt. A missing tool costs
-            seconds.
+            In a sandboxed session with Nix available, the agent runs
+            <code>nix shell nixpkgs#&lt;package&gt;</code> instead of installing
+            with npm, pip, brew or apt, so nothing lands in the sandbox.
           </p>
           <figure class="fig fig--code" aria-hidden="true">
             <div class="fig__head mono">one command</div>
@@ -432,9 +447,9 @@ nix shell nixpkgs#ripgrep <span class="c-str">-c</span> <span class="c-str">"rg 
         <article class="cap" data-reveal id="plugins">
           <h4 class="h3">A plugin system that runs Doom</h4>
           <p>
-            It is so extensible that you can even run DOOM through it.
-            Plugins are Python, out of process, and add tools, commands,
-            hooks, UI and model providers.
+            Plugins run out of process, are usually written in Python, and can
+            add tools, commands, hooks, UI and model providers. That's enough
+            surface to run Doom.
           </p>
           <figure class="fig" aria-hidden="true">
             <div class="fig__head mono">plugin surface</div>
@@ -453,10 +468,11 @@ nix shell nixpkgs#ripgrep <span class="c-str">-c</span> <span class="c-str">"rg 
     <div class="wrap">
       <div class="cta" data-reveal>
         <h2 class="cta__title">Run your first task.</h2>
-        <p class="cta__note">Choose your OS, connect a provider, and check that Yazi is ready.</p>
+        <p class="cta__note">One command on Linux or macOS. Then start <code>yazi</code> and type <code>/login</code>.</p>
+        {snippet(INSTALL_CMD, "Copy install command")}
         <div class="cta__actions">
-          <a class="btn btn--primary" href="install.html">Install Yazi</a>
-          <a class="btn btn--ghost" href="https://src.krea.to/kreato/yazi/releases">View releases</a>
+          <a class="btn btn--primary" href="install.html">Install guide</a>
+          <a class="btn btn--ghost" href="https://src.krea.to/kreato/yazi">Read the source</a>
         </div>
       </div>
     </div>

@@ -62,13 +62,6 @@ INSTALL = rf"""
               move the install, <code>--uninstall</code> removes it.
               <code>--help</code> lists the rest.
             </p>
-            <p class="step__text step__text--dim">
-              Prefer a prebuilt binary? Grab an archive from
-              <a href="https://src.krea.to/kreato/yazi/releases">project releases</a>
-              and put <code>yazi</code> and <code>yazi-runtime</code> in the same
-              directory on your <code>PATH</code>. Both are needed: the first is
-              a small frontend, the second does the work.
-            </p>
           </div>
           <div class="step__aside">
             <ul class="plat-list">
@@ -140,9 +133,11 @@ INSTALL = rf"""
       </details>
 
       <p class="install__caveat">
-        Yazi is under active development. Bounded episodes apply to sessions
-        with an attached, claimed task. OS, terminal and sandbox compatibility
-        can vary by build.
+        Yazi is under active development. Rebuilding context from a checkpoint
+        applies to tracked tasks (a task from a spec attached with
+        <code>/spec</code>); other sessions use ordinary compaction and resume
+        from their transcript.
+        OS, terminal and sandbox compatibility can vary by build.
       </p>
     </div>
   </section>
@@ -201,11 +196,11 @@ yazi --mode rpc          <span class="c-com"># machine-readable</span></code></p
         <div class="next__links">
           <a class="next__link" href="index.html#mechanisms">
             <span class="next__label">How it works</span>
-            <span class="next__desc">Revisioned state, bounded episodes, the harness.</span>
+            <span class="next__desc">Fresh context, owned work, learning from runs.</span>
           </a>
           <a class="next__link" href="index.html#features">
             <span class="next__label">Features</span>
-            <span class="next__desc">Eleven things the other harnesses do not have.</span>
+            <span class="next__desc">Resume, remote machines, subagents, the sandbox and more.</span>
           </a>
         </div>
       </div>

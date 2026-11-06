@@ -2440,6 +2440,13 @@ main [id] { scroll-margin-top: calc(var(--nav-h) + var(--s-4)); }
   color: var(--text-secondary);
 }
 
+/* The install one-liner, left-aligned inside the centred CTA. */
+.cta .snippet {
+  max-width: 560px;
+  margin: var(--s-5) auto 0;
+  text-align: left;
+}
+
 .cta__actions {
   display: flex;
   flex-wrap: wrap;

@@ -74,7 +74,7 @@ function check(name, pass, detail) {
       done.assistant[0] === 'Preparing the test run.' &&
       done.assistant[1] === 'All four scenarios passed.', JSON.stringify(done.assistant));
     check('checkpoint and resume appear in order',
-      done.events.join('|') === 'Checkpoint saved · rev 8|Terminal disconnected|$ yazi --continue|Session restored · rev 8',
+      done.events.join('|') === 'Checkpoint saved|Terminal disconnected|$ yazi --continue|Session restored',
       JSON.stringify(done.events));
     check('tool block reaches the done state', done.toolDone, String(done.toolDone));
     check('tool head reads "shell · done"', done.head === 'shell · done', JSON.stringify(done.head));

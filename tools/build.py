@@ -82,20 +82,20 @@ FOOT = """</main>
           <img class="brand__mark" src="assets/img/jet-logo.svg" alt="" width="24" height="24" />
           <span class="brand__word">yazi</span>
         </a>
-        <p class="foot__tag">Where it all starts. A durable coding-agent runtime for work that outlives a terminal, context window, or machine.</p>
+        <p class="foot__tag">Where it all starts. A coding agent for work that outlives a terminal, a context window or a machine.</p>
       </div>
-      <nav class="foot__col" aria-label="Mechanism">
-        <p class="foot__head mono">Mechanism</p>
-        <a href="index.html#revisioned-state">Revisioned state</a>
-        <a href="index.html#bounded-episodes">Bounded episodes</a>
-        <a href="index.html#continual-harness">Continual harness</a>
+      <nav class="foot__col" aria-label="How it works">
+        <p class="foot__head mono">How it works</p>
+        <a href="index.html#bounded-episodes">Fresh context</a>
+        <a href="index.html#revisioned-state">Owned, revisioned work</a>
+        <a href="index.html#continual-harness">Learning from runs</a>
       </nav>
       <nav class="foot__col" aria-label="Product">
         <p class="foot__head mono">Product</p>
         <a href="index.html#features">Features</a>
         <a href="install.html">Install</a>
         <a href="index.html#cache">Cache benchmark</a>
-        <a href="index.html#acp">Reverse ACP</a>
+        <a href="index.html#acp">Bring your own agent</a>
       </nav>
       <div class="foot__col">
         <p class="foot__head mono">Project</p>

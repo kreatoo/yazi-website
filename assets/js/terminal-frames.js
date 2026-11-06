@@ -1,7 +1,8 @@
 // What yazi's TUI actually paints.
 //
 // The splash and test output come from the render code and frame goldens.
-// Checkpoint and reconnect lines illustrate the example workflow:
+// Checkpoint and reconnect lines, and the elapsed time, illustrate the example
+// workflow:
 //
 //   logo   internal/tui2/app/header.go        const brandLogo
 //   meta   internal/tui2/app/header_splash.go splashHeaderLines
@@ -49,7 +50,7 @@ window.YAZI_TUI = {
     },
     {
       "kind": "event",
-      "text": "Checkpoint saved · rev 8"
+      "text": "Checkpoint saved"
     },
     {
       "kind": "event",
@@ -64,7 +65,7 @@ window.YAZI_TUI = {
     },
     {
       "kind": "event",
-      "text": "Session restored · rev 8",
+      "text": "Session restored",
       "state": "is-resumed"
     },
     {
@@ -82,7 +83,7 @@ window.YAZI_TUI = {
     {
       "kind": "tool-done",
       "state": "done",
-      "time": "Took 0.0s"
+      "time": "Took 1.2s"
     },
     {
       "kind": "assistant",

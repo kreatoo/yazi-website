@@ -101,13 +101,6 @@
               move the install, <code>--uninstall</code> removes it.
               <code>--help</code> lists the rest.
             </p>
-            <p class="step__text step__text--dim">
-              Prefer a prebuilt binary? Grab an archive from
-              <a href="https://src.krea.to/kreato/yazi/releases">project releases</a>
-              and put <code>yazi</code> and <code>yazi-runtime</code> in the same
-              directory on your <code>PATH</code>. Both are needed: the first is
-              a small frontend, the second does the work.
-            </p>
           </div>
           <div class="step__aside">
             <ul class="plat-list">
@@ -201,9 +194,11 @@ go build -trimpath -o yazi-runtime ./cmd/yazi-runtime</code>
       </details>
 
       <p class="install__caveat">
-        Yazi is under active development. Bounded episodes apply to sessions
-        with an attached, claimed task. OS, terminal and sandbox compatibility
-        can vary by build.
+        Yazi is under active development. Rebuilding context from a checkpoint
+        applies to tracked tasks (a task from a spec attached with
+        <code>/spec</code>); other sessions use ordinary compaction and resume
+        from their transcript.
+        OS, terminal and sandbox compatibility can vary by build.
       </p>
     </div>
   </section>
@@ -262,11 +257,11 @@ yazi --mode rpc          <span class="c-com"># machine-readable</span></code></p
         <div class="next__links">
           <a class="next__link" href="index.html#mechanisms">
             <span class="next__label">How it works</span>
-            <span class="next__desc">Revisioned state, bounded episodes, the harness.</span>
+            <span class="next__desc">Fresh context, owned work, learning from runs.</span>
           </a>
           <a class="next__link" href="index.html#features">
             <span class="next__label">Features</span>
-            <span class="next__desc">Eleven things the other harnesses do not have.</span>
+            <span class="next__desc">Resume, remote machines, subagents, the sandbox and more.</span>
           </a>
         </div>
       </div>
@@ -282,20 +277,20 @@ yazi --mode rpc          <span class="c-com"># machine-readable</span></code></p
           <img class="brand__mark" src="assets/img/jet-logo.svg" alt="" width="24" height="24" />
           <span class="brand__word">yazi</span>
         </a>
-        <p class="foot__tag">Where it all starts. A durable coding-agent runtime for work that outlives a terminal, context window, or machine.</p>
+        <p class="foot__tag">Where it all starts. A coding agent for work that outlives a terminal, a context window or a machine.</p>
       </div>
-      <nav class="foot__col" aria-label="Mechanism">
-        <p class="foot__head mono">Mechanism</p>
-        <a href="index.html#revisioned-state">Revisioned state</a>
-        <a href="index.html#bounded-episodes">Bounded episodes</a>
-        <a href="index.html#continual-harness">Continual harness</a>
+      <nav class="foot__col" aria-label="How it works">
+        <p class="foot__head mono">How it works</p>
+        <a href="index.html#bounded-episodes">Fresh context</a>
+        <a href="index.html#revisioned-state">Owned, revisioned work</a>
+        <a href="index.html#continual-harness">Learning from runs</a>
       </nav>
       <nav class="foot__col" aria-label="Product">
         <p class="foot__head mono">Product</p>
         <a href="index.html#features">Features</a>
         <a href="install.html">Install</a>
         <a href="index.html#cache">Cache benchmark</a>
-        <a href="index.html#acp">Reverse ACP</a>
+        <a href="index.html#acp">Bring your own agent</a>
       </nav>
       <div class="foot__col">
         <p class="foot__head mono">Project</p>
