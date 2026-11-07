@@ -28,7 +28,9 @@ HEAD = """<!doctype html>
 <meta name="theme-color" content="#151517" />
 <title>{title}</title>
 <meta name="description" content="{description}" />
-<link rel="icon" href="assets/img/jet-logo.svg" type="image/svg+xml" />
+<!-- The site is dark-only (color-scheme: dark, one palette in tokens.css), so the
+     icon and both brand marks are the -dark artwork; no prefers-color-scheme pair. -->
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml" />
 <link rel="preload" href="assets/fonts/montserrat-light.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="preload" href="assets/fonts/montserrat-medium.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="stylesheet" href="assets/css/tokens.css" />
@@ -51,7 +53,8 @@ HEAD = """<!doctype html>
 <header class="nav" data-nav>
   <div class="nav__inner">
     <a class="brand" href="index.html" aria-label="Yazi, home">
-      <img class="brand__mark" src="assets/img/jet-logo.svg" alt="" width="28" height="28" />
+      <!-- Wing-only mark: the full logo's drones turn to specks at 28px. -->
+      <img class="brand__mark" src="assets/img/mark-dark.svg" alt="" width="28" height="28" />
       <span class="brand__word">yazi</span>
     </a>
     <nav class="nav__links" aria-label="Sections">
@@ -79,7 +82,8 @@ FOOT = """</main>
     <div class="foot__grid">
       <div class="foot__brand">
         <a class="brand" href="index.html">
-          <img class="brand__mark" src="assets/img/jet-logo.svg" alt="" width="24" height="24" />
+          <!-- Wing-only mark, -dark variant, as in the header. -->
+          <img class="brand__mark" src="assets/img/mark-dark.svg" alt="" width="24" height="24" />
           <span class="brand__word">yazi</span>
         </a>
         <p class="foot__tag">Where it all starts. A coding agent for work that outlives a terminal, a context window or a machine.</p>

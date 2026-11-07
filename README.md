@@ -14,7 +14,7 @@ assets/css/tokens.css     design tokens, traced to design/dna.json
 assets/css/site.css       layout, components, motion
 assets/css/tui.css        the terminal
 assets/js/site.js         interaction layer
-assets/js/terminal-frames.js  verbatim strings from the product's TUI
+assets/js/terminal-frames.js  the TUI's verbatim header rows and replay steps
 design/dna.json           the Design DNA profile
 tools/build.py            page generator
 tools/pages_*.py          page bodies

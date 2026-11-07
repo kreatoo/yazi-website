@@ -397,8 +397,8 @@ main [id] { scroll-margin-top: calc(var(--nav-h) + var(--s-4)); }
 }
 
 .brand__mark {
-  width: 28px;
-  height: 28px;
+  /* Size comes from the markup's width/height (28 header, 24 footer): the
+     drawing is a square 565x565 viewBox, so those seats do not distort it. */
   transition: transform var(--dur-macro) var(--ease);
 }
 .brand:hover .brand__mark { transform: translate(2px, -2px) rotate(-2deg); }
@@ -1073,6 +1073,14 @@ main [id] { scroll-margin-top: calc(var(--nav-h) + var(--s-4)); }
   line-height: 1.6;
   color: var(--text-dim);
 }
+
+/* A platform the product does not build for: still listed, so nobody has to
+   guess, but it reads as a boundary rather than an option. */
+.plat--out {
+  background: var(--tint-card-soft);
+  border-style: dashed;
+}
+.plat--out .plat__os { color: var(--text-tertiary); }
 
 /* ── Snippets ───────────────────────────────────────────────────────────── */
 

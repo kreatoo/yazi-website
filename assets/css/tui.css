@@ -4,8 +4,9 @@
    This is not a mockup of "a terminal". It reproduces what yazi's TUI actually
    paints, taken from the render code and the frame goldens:
 
-     internal/tui2/app/header_splash.go   the butterfly + metadata block
-     internal/tui2/app/header.go          brandLogo, shortPath
+     internal/tui2/app/header_splash.go   the brand mark + metadata block
+     internal/tui2/app/logo.go            the mark: the artwork in a 20x7 cell box
+     internal/tui2/app/header.go          shortPath
      internal/tui2/app/root.go            paintHint: state left, mode right
      internal/tui2/parity/testdata/       exact glyphs, indents and spacing
      internal/tui2/theme/data/dark.json   the colours
@@ -74,16 +75,55 @@
   margin-bottom: 22px;
 }
 
-/* brandLogo, verbatim. It is 7 rows of ASCII; the leading spaces are part of
-   the art, so it is pre-formatted and must not be re-indented. */
+/* The brand mark, the way the TUI draws it in a capable terminal: the artwork
+   itself, in the cell box logo.go reserves for it — brandCols x brandRows, 20
+   columns by 7 rows, the butterfly's own footprint, so the metadata column sits
+   where it always did.
+
+   The box is measured in the mock's own grid: one column is 1ch of the mock's
+   mono font and one row is 1.5em (the line-height above), which is what makes
+   the picture land in the same cells the TUI reserves.
+
+   logo-dark.svg is a 1024x1024 canvas with the drawing inside it at
+   (93, 322), 930x701 — the drones, their dotted trails and the carrier. Those
+   fractions are the four --logo-art-* values below. The canvas is scaled until
+   the *drawing* is 20 columns wide, then offset so the drawing, not its
+   transparent margin, is centred in the box. At this grid the drawing is
+   width-limited: 20 columns wide by 15.08ch (6.2 of the 7 rows) tall, so the
+   box keeps a little air above and below, as the product's does.
+
+   It is vector art, so it must be scaled by the browser, never resampled with
+   nearest-neighbour: image-rendering stays auto. */
 .tui__logo {
-  margin: 0;
-  font-family: var(--font-mono);
-  font-size: 12.5px;
-  line-height: 1.5;
-  color: var(--tui-text);
-  white-space: pre;
+  --logo-art-w: 0.9084; /* 930 / 1024 */
+  --logo-art-h: 0.6851; /* 701 / 1024 */
+  --logo-art-x: 0.0906; /*  93 / 1024 */
+  --logo-art-y: 0.3147; /* 322 / 1024 */
+  /* The canvas width that makes the drawing 20 columns wide. */
+  --logo-canvas: calc(20ch / var(--logo-art-w));
+  position: relative;
+  display: block;
+  width: 20ch;
+  height: 10.5em; /* 7 rows of the 1.5 line-height */
   flex-shrink: 0;
+}
+
+.tui__logo-img {
+  position: absolute;
+  width: var(--logo-canvas);
+  /* site.css clamps every image to its container's width; this one is
+     deliberately wider than the box (the box is the *drawing's* 20 columns,
+     the canvas adds the transparent margin), so the clamp must not apply. */
+  max-width: none;
+  height: auto;
+  /* Centre the drawing in the box: half a box less half the drawing's width,
+     then back off its own left margin; the same vertically, on the middle of
+     the box (5.25em) and the drawing's height and top margin. Percentages are
+     of the canvas, so the picture stays centred at any font size. */
+  left: calc(50% - (var(--logo-canvas) * var(--logo-art-w)) / 2 - var(--logo-canvas) * var(--logo-art-x));
+  top: calc(5.25em - (var(--logo-canvas) * var(--logo-art-h)) / 2 - var(--logo-canvas) * var(--logo-art-y));
+  /* Vector art: let the browser scale it, never nearest-neighbour. */
+  image-rendering: auto;
 }
 
 .tui__meta {
@@ -92,7 +132,9 @@
   gap: 0;
   font-size: 12.5px;
   line-height: 1.5;
-  padding-top: 0;
+  /* splashHeaderLines centres the metadata block in the header's rows:
+     start = (rows - len(meta)) / 2, which is one row for 7 rows and 4 lines. */
+  padding-top: 1.5em;
 }
 
 .tui__meta-row { white-space: pre; }
@@ -264,7 +306,8 @@
 
 @media (max-width: 640px) {
   .tui__screen { padding: 14px 14px 12px; min-height: 29rem; }
-  .tui__logo { font-size: 11px; }
+  /* The mark keeps the grid's own 20x7 cells: it is the same box the TUI
+     reserves, so it scales with the mock's font rather than being shrunk. */
   .tui__header { gap: 12px; margin-bottom: 16px; }
   .tui__meta { min-width: 0; }
   .tui__meta-row { white-space: normal; overflow-wrap: anywhere; }

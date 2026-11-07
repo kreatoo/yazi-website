@@ -329,8 +329,8 @@
     },
     "imagery": {
       "photo_treatment": "none \u2014 no photography anywhere",
-      "illustration_style": "none; the only image is the product's own jet mark, used at 28-96px",
-      "graphic_elements": "the jet mark, mono ASCII-style diagrams, dot grid, hairline rules, syntax-highlighted code",
+      "illustration_style": "none; the only image is the product's own drone-carrier mark, used at 24-28px",
+      "graphic_elements": "the drone-carrier mark, mono ASCII-style diagrams, dot grid, hairline rules, syntax-highlighted code",
       "pattern_usage": "22px dot grid, radial-masked, panning slowly on the landing surface only",
       "image_shape": "the mark is unshaped (transparent PNG-equivalent SVG); diagrams are rectangular with 12px radii"
     },
@@ -458,7 +458,7 @@
     },
     "image_effects": {
       "type": "none",
-      "description": "The only image is the jet mark: it drifts 2px and tilts 2deg on hover of the brand lockup, nothing more.",
+      "description": "The only image is the drone-carrier mark: it drifts 2px and tilts 2deg on hover of the brand lockup, nothing more.",
       "technology": "CSS transform",
       "params": {
         "filter_pipeline": "none",
@@ -494,7 +494,7 @@
     "svg_animations": {
       "enabled": false,
       "type": "none",
-      "description": "The jet mark is a 257-path traced illustration; path-drawing it would cost 200KB of stroke work for an effect the product never had. It fades in with the hero.",
+      "description": "The mark is a 31-polygon drawn illustration (the wing-only cut, 5KB); path-drawing it would cost stroke work for an effect the product never had. It fades in with the hero.",
       "params": {
         "animation_method": "none",
         "path_morphing": "none",

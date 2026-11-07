@@ -51,7 +51,7 @@ render code:
 
 | Source | What it gives |
 | --- | --- |
-| `internal/tui2/app/header.go` | `brandLogo`, the 7-row ASCII butterfly |
+| `internal/tui2/app/logo.go` | The brand mark: the full drone-carrier logo as an image in a 20x7 cell box, then truecolor half blocks, then the 7-row ASCII butterfly (`brandLogo`, still in `header.go`) |
 | `internal/tui2/app/header_splash.go` | The metadata block: version, sessions, endpoints, cwd |
 | `internal/tui2/app/root.go` | `paintHint`: state left, expansion mode right |
 | `internal/tui2/parity/testdata/tool-call-80.txt` | Exact glyphs, indents, spacing |
@@ -173,13 +173,26 @@ assets/css/site.css      layout, components, motion
 assets/css/tui.css       the terminal
 assets/js/site.js        interaction layer
 assets/js/terminal-frames.js  TUI strings and illustrative resume events
-assets/img/jet-logo.svg  the product mark
+assets/img/logo.svg      the full logo: drone carrier and its drones
+assets/img/logo-dark.svg the same drawing, colours lifted for dark surfaces
+assets/img/mark.svg      the wing alone, for 16-24px seats
+assets/img/mark-dark.svg the wing alone, lifted for dark surfaces
+assets/img/favicon.svg   the wing alone, switches itself on prefers-color-scheme
 assets/fonts/            Montserrat 300/400/500 (SIL OFL)
 design/dna.json          the Design DNA profile
 tools/build.py           page generator
 tools/pages_*.py         page bodies
 tools/                   screenshot, behaviour, edge-case, contrast harnesses
 ```
+
+The images are byte copies of `yazi/web/public/*.svg`, so the site and the
+product cannot drift. The site is dark-only (`tools/build.py` emits
+`color-scheme: dark` and `assets/css/tokens.css` holds one palette), so the
+brand seats take the `-dark` variants directly rather than a
+`prefers-color-scheme` pair: `mark-dark.svg` at 28px in the header and 24px in
+the footer. The wing alone is the right cut at those sizes; the drones of the
+full logo shrink to specks. The favicon is the one file that carries its own
+light/dark switch, because a browser tab follows the OS, not the page.
 
 No build step for the site itself. Open `index.html`, or serve the directory:
 

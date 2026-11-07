@@ -34,13 +34,7 @@ INDEX = rf"""
           <figure class="tui" data-terminal>
             <div class="tui__screen">
               <div class="tui__header">
-                <pre class="tui__logo" aria-hidden="true">              :=**+:
-    .    .-+***+-
-   :=+=:-**+=.
-.-++=::--::
--###*+:=*-:
-:+**+==+*=
-      .=+:</pre>
+                <span class="tui__logo" aria-hidden="true"><img class="tui__logo-img" src="assets/img/logo-dark.svg" alt="" width="1024" height="1024" /></span>
                 <div class="tui__meta">
                   <div class="tui__meta-row"><span class="tui__meta-name">Yazi </span><span class="tui__meta-val">v0.1.0-dev</span></div>
                   <div class="tui__meta-row"><span class="tui__meta-key">sessions </span><span class="tui__meta-val">3</span></div>
@@ -310,14 +304,14 @@ INDEX = rf"""
           <div class="cap__figure">
             <figure class="skeleton" aria-label="Example index output for a Go file: imports, types with fields and methods, and functions, each with a line range.">
               <div class="skeleton__head mono">skeleton internal/tool/file/read.go</div>
-              <pre class="skeleton__body"><span class="sk-k">imports</span>: [4-14]
+              <pre class="skeleton__body"><span class="sk-k">imports</span>: [4-17]
 <span class="sk-k">types</span>:
-  <span class="sk-t">type Config struct</span> [18-21]
+  <span class="sk-t">type Config struct</span> [24-38]
     Cwd <span class="sk-y">string</span>
-  <span class="sk-t">type Read struct</span> [23]
-    <span class="sk-f">func (r *Read) Invoke(...)</span> [57-124]
+  <span class="sk-t">type Read struct</span> [40]
+    <span class="sk-f">func (r *Read) Invoke(...)</span> [159-233]
 <span class="sk-k">fns</span>:
-  <span class="sk-f">func NewRead(config)</span> [25-30]</pre>
+  <span class="sk-f">func NewRead(config)</span> [42-53]</pre>
             </figure>
           </div>
         </article>
@@ -415,15 +409,18 @@ INDEX = rf"""
         <article class="cap" data-reveal id="surfaces-qr">
           <h4 class="h3">One session, two surfaces</h4>
           <p>
-            The TUI and the web UI are the same runtime. Start the web surface,
-            then scan the pairing code printed by Yazi to open the same session on your phone.
+            The TUI and the web UI are the same runtime. Run
+            <code>/remote pair</code> and scan the code it prints to open the
+            same session on your phone. The server only answers clients on the
+            private networks it defaults to: your LAN, a tailnet and the machine
+            itself.
           </p>
           <figure class="fig fig--qr" aria-hidden="true">
             <div class="fig__head mono">pair to attach</div>
             <div class="fig__qrbody">
               <div class="qr" data-qr></div>
               <div class="fig__qrtext">
-                <span class="mono">yazi://pair</span>
+                <span class="mono">/#pair=…</span>
                 <span>Same session, same queue, same processes.</span>
               </div>
             </div>

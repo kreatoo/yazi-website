@@ -47,8 +47,8 @@ INSTALL = rf"""
             <p class="step__text">
               The installer clones the Yazi repository, builds <code>yazi</code>
               and <code>yazi-runtime</code>, and links both into
-              <code>~/.local/bin</code>. It needs git and curl, not Go: if Go is
-              missing or too old, it fetches a toolchain just for the build.
+              <code>~/.local/bin</code>. It needs git, curl and tar, not Go: if
+              Go is missing or too old, it fetches a toolchain just for the build.
               Run it again to update.
             </p>
             {snippet(INSTALL_CMD, "Copy install command")}
@@ -75,6 +75,11 @@ INSTALL = rf"""
                 <span class="plat__arch mono">amd64 · arm64</span>
                 <span class="plat__note">arm64 for Apple silicon, amd64 for Intel.</span>
               </li>
+              <li class="plat plat--out">
+                <span class="plat__os">Windows</span>
+                <span class="plat__arch mono">not supported</span>
+                <span class="plat__note">Not a release target. Use the Linux build under WSL; the installer refuses Windows and points there.</span>
+              </li>
             </ul>
           </div>
         </li>
@@ -84,8 +89,9 @@ INSTALL = rf"""
             <h2 class="step__title">Connect a provider</h2>
             <p class="step__text">
               Start Yazi and run <code>/login</code> at the prompt. It supports
-              OpenAI, Anthropic, Google, Amazon Bedrock, Mistral and any
-              compatible endpoint. Keys are stored once, in
+              OpenAI, Anthropic, Google, Amazon Bedrock, Mistral, NanoGPT,
+              Command Code, OpenCode Go and the ChatGPT/Codex subscription, plus
+              any OpenAI-compatible endpoint. Keys are stored once, in
               <code>auth.json</code>.
             </p>
             {snippet("yazi", "Copy launch command")}
@@ -160,8 +166,8 @@ yazi --resume &lt;id&gt; --fork</code></pre>
 
         <figure class="code" data-reveal>
           <figcaption class="code__bar"><span class="mono">shell</span><span class="mono code__bar-note">control</span></figcaption>
-<pre><code>yazi agents              <span class="c-com"># active work</span>
-yazi list                <span class="c-com"># saved sessions</span>
+<pre><code>yazi agents list         <span class="c-com"># live agents</span>
+yazi list --all          <span class="c-com"># every agent</span>
 yazi attach &lt;id&gt;
 yazi send &lt;id&gt; <span class="c-str">"keep going"</span>
 yazi stop &lt;id&gt;</code></pre>
